@@ -1,0 +1,173 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>jvm垃圾收集过程 | sail home</title><meta name="author" content="sail"><meta name="copyright" content="sail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="jvm垃圾收集过程 一般对象产生会首先放到Eden区，Eden区空间不足则会放入到From Survivor区，如果仍然放不下，就会触发一次新生代的Minor GC。 在Eden区中存活的对象会放入To Survivor区中 在From Survivor区中存活的对象会放入To Survivor区中，同时给From Survivor区的对象年龄+1，如果达到阈值，就会被放入老年代 最后会清空Ede">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jvm垃圾收集过程">
+<meta property="og:url" content="https://saaaaaail.github.io/saaaaaail/2020/04/26/jvm-gc-process/index.html">
+<meta property="og:site_name" content="sail home">
+<meta property="og:description" content="jvm垃圾收集过程 一般对象产生会首先放到Eden区，Eden区空间不足则会放入到From Survivor区，如果仍然放不下，就会触发一次新生代的Minor GC。 在Eden区中存活的对象会放入To Survivor区中 在From Survivor区中存活的对象会放入To Survivor区中，同时给From Survivor区的对象年龄+1，如果达到阈值，就会被放入老年代 最后会清空Ede">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png">
+<meta property="article:published_time" content="2020-04-26T02:26:53.000Z">
+<meta property="article:modified_time" content="2025-03-16T04:21:42.251Z">
+<meta property="article:author" content="sail">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="gc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "jvm垃圾收集过程",
+  "url": "https://saaaaaail.github.io/saaaaaail/2020/04/26/jvm-gc-process/",
+  "image": "https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png",
+  "datePublished": "2020-04-26T02:26:53.000Z",
+  "dateModified": "2025-03-16T04:21:42.251Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "sail",
+      "url": "https://saaaaaail.github.io/saaaaaail/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://saaaaaail.github.io/saaaaaail/2020/04/26/jvm-gc-process/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'jvm垃圾收集过程',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 5.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">sail home</span></a><a class="nav-page-title" href="/"><span class="site-name">jvm垃圾收集过程</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">jvm垃圾收集过程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-04-26T02:26:53.000Z" title="发表于 2020-04-26 10:26:53">2020-04-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-16T04:21:42.251Z" title="更新于 2025-03-16 12:21:42">2025-03-16</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="jvm垃圾收集过程"><a href="#jvm垃圾收集过程" class="headerlink" title="jvm垃圾收集过程"></a>jvm垃圾收集过程</h1><ol>
+<li>一般对象产生会首先放到Eden区，Eden区空间不足则会放入到From Survivor区，如果仍然放不下，就会触发一次新生代的Minor GC。<ul>
+<li>在Eden区中存活的对象会放入To Survivor区中</li>
+<li>在From Survivor区中存活的对象会放入To Survivor区中，同时给From Survivor区的对象年龄+1，如果达到阈值，就会被放入老年代</li>
+<li>最后会清空Eden区与From Survivor区，不会产生内存碎片，如果在一次Minor GC结束以后，To Survivor区放不下存活的对象，就将这些对象移入老年代</li>
+<li>大对象会直接放入老年代</li>
+</ul>
+</li>
+<li>当执行完一次Minor GC以后，有对象移入老年代，就得分析有没有超过老年代最大剩余空间，超过了就会触发Full GC。</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://saaaaaail.github.io/saaaaaail">sail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://saaaaaail.github.io/saaaaaail/2020/04/26/jvm-gc-process/">https://saaaaaail.github.io/saaaaaail/2020/04/26/jvm-gc-process/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://saaaaaail.github.io/saaaaaail" target="_blank">sail home</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/java/">java</a><a class="post-meta__tags" href="/tags/gc/">gc</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2020/04/24/jvm-gc-c1/" title="jvm垃圾收集器G1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">jvm垃圾收集器G1</div></div><div class="info-2"><div class="info-item-1">jvm垃圾收集器G1G1（Garbage-First）G1面向服务端应用的垃圾收集器。   其他垃圾收集器将堆区分为新生代与老年代来进行垃圾收集，而G1直接对新生代与老年代一起回收。   G1将堆划分为多个大小相同的region，记录region垃圾回收的时间与回收获得的空间，维护一个垃圾回收的优先列表。便于预测停顿时间模型。region被分类为Eden、Survivor、Old、Humongous四种类型。 region被分为多个card，一个card分片一般为512Bytes。 每个region都具有自己的Remembered Set（Rset），是point into的设计，即逻辑上记录的是其他region的card中的对象（这些对象引用了当前region中某一card的某个对象），实际上Rset的设计是一个HashTable，一条记录的key值是其他region的起始地址，value是一个集合，记录region中的card数组的索引值。 GC过程G1提供了两种GC方式  Young GC:...</div></div></div></a><a class="pagination-related" href="/2020/04/26/spring-bean-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" title="spring bean 生命周期"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">spring bean 生命周期</div></div><div class="info-2"><div class="info-item-1">先总结主要流程 obtainBeanFactory(); 创建BeanFactory，就是将配置类和xml里的Bean类注册到BeanDefinition中。 然后注册BeanFactory的一些后置处理器。 执行BeanFactory的BeanDefinitionRegistryPostProcessor完成Bean的注册工作。 注册Bean的后置处理器 初始化国际化相关的类 初始化事件驱动机制的事件注册表 注册事件监听器 finishBeanFactoryInitialization开始生成Bean，在Bean的生命周期前后都有后置处理器执行 后续自己悟  spring bean 生命周期ConfigurableApplicationContext中的refresh()方法，其中几个重要步骤：  prepareRefresh();//刷新前的预处理 initPropertySource();//初始化一些属性设置 getEnvironment().validateRequiredProperties();//验证属性合法性 earlyApplicationEvents =...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2020/08/23/Spring-Boot-%E7%9F%A5%E8%AF%86%E7%82%B9%E8%AF%A6%E8%A7%A3/" title="Spring_Boot_知识点详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-23</div><div class="info-item-2">Spring_Boot_知识点详解</div></div><div class="info-2"><div class="info-item-1">自动装配原理ioc相关FactoryBean和BeanFactoryFactoryBean是工厂Bean，是Spring提供的实例化比较复杂的对象的一种方式，通过实现FactoryBean接口，重写getObject方法来实现一个工厂Bean，隐藏了实现细节，简化xml的配置。BeanFactory是ioc容器的顶级接口。主要完成Bean的注册，创建，访问等工作。 aop原理 在around中可以用,此时可以使用process()来执行被包裹的代码。  123public void around(ProceedingJoinPoint joinpoint) &#123;      joinpoint.proceed();  &#125;   1 2 3 6 733 2 3 6 5  joinPoint可以获得的参数1234567joinpoint.getArgs();//輸入的參數列表    joinpoint.getTarget().getClass().getName();//類全路徑   ...</div></div></div></a><a class="pagination-related" href="/2020/08/27/java%E9%9D%A2%E8%AF%95%E9%A2%98%E8%AE%B0%E5%BD%952020/" title="java面试题记录2020"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-27</div><div class="info-item-2">java面试题记录2020</div></div><div class="info-2"><div class="info-item-1">为什么选择activiti6因为一开始是leader选型的，我只是参与一下，后面问了为什么要使用activiti6，而不是自己使用状态模式，定义多个状态，leader说不要重复造轮子，如果自己实现的话，自己管理流程也要做activiti6类似的工作，而且在不停地场景下面，自己定义不同状态地实现的话，就要不停地修改状态的跳转逻辑，就是抽象一个类出来做complete操作，根据我传的状态位去跳，如果自己写，流程一变这些都需要改，activiti6提供了一种bpmn快速绘图的机制，能快速修改流程，并且只需要修改相关的业务逻辑即可，不需要修改状态的逻辑。 数组是什么类型有原生类型与引用类型原生的就是在jvm虚拟机栈上分配，引用的就是在虚拟机栈上分配一个引用指向堆上的实例。 jdbc连接池 池化技术的核心就是要让连接能够复用。 如何设计一个直播平台 主播端需要视频采集编码 视频流要传输到服务端 服务端要能适配各种编码的视频流，要推送给不同端的用户，要能转码 推给端上播放要解码+渲染 对于一个后台而言， 视频流肯定要做持久化，数据库 热点视频流做缓存 消息队列做限流  instanceof...</div></div></div></a><a class="pagination-related" href="/2020/04/21/jvm%E7%9F%A5%E8%AF%86%E7%82%B9%E5%A4%8D%E4%B9%A0/" title="jvm知识点复习"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-04-21</div><div class="info-item-2">jvm知识点复习</div></div><div class="info-2"><div class="info-item-1">一、知识点jvm内存模型 程序计数器 虚拟机栈 本地方法栈 堆区 方法区 运行时常量池  程序计数器线程私有，如果正在执行的方法是java方法，则记录的是字节码指令的地址，如果正在执行的方法是native方法，则记录为空。不会报栈溢出、内存溢出异常。 虚拟机栈线程私有，保存局部变量表、操作数栈、方法出口、动态链接等。栈深度大于虚拟机允许的最大深度，那么会报栈溢出异常。如果虚拟机栈内存不够，且无法申请到新的内存，那么会报内存溢出异常。 本地方法栈线程私有，与虚拟机栈类似。 堆区堆是jvm管理的最大一块内存，线程共享。存放对象实例。是java GC管理的主要区域。 方法区用于存放已经被加载的类的信息、常量、静态变量、即使编译器编译后的代码等数据。 从jdk1.8开始，移除永久代，将方法区移到元空间，位于本地内存，而不是jvm被分配的内存。 永久代里的数据常量池和静态变量放到堆中，类的信息放到元空间里。 运行时常量池运行时常量池逻辑上属于方法区，1.8版本以后放入堆区。 主要存 class文件中的常量池在被加载以后会放入这个区域 (编译期间生成的字面量和符号引用)  字面量:...</div></div></div></a><a class="pagination-related" href="/2020/04/26/spring-bean-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" title="spring bean 生命周期"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-04-26</div><div class="info-item-2">spring bean 生命周期</div></div><div class="info-2"><div class="info-item-1">先总结主要流程 obtainBeanFactory(); 创建BeanFactory，就是将配置类和xml里的Bean类注册到BeanDefinition中。 然后注册BeanFactory的一些后置处理器。 执行BeanFactory的BeanDefinitionRegistryPostProcessor完成Bean的注册工作。 注册Bean的后置处理器 初始化国际化相关的类 初始化事件驱动机制的事件注册表 注册事件监听器 finishBeanFactoryInitialization开始生成Bean，在Bean的生命周期前后都有后置处理器执行 后续自己悟  spring bean 生命周期ConfigurableApplicationContext中的refresh()方法，其中几个重要步骤：  prepareRefresh();//刷新前的预处理 initPropertySource();//初始化一些属性设置 getEnvironment().validateRequiredProperties();//验证属性合法性 earlyApplicationEvents =...</div></div></div></a><a class="pagination-related" href="/2020/06/02/%E5%AF%B9%E8%B1%A1%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/" title="对象内存布局"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-06-02</div><div class="info-item-2">对象内存布局</div></div><div class="info-2"><div class="info-item-1">对象内存布局详解ps:使用JOL插件能查看打印对象的内存布局情况 1Object o = new Object(); 创建一个新对象的内存布局。在一个64位系统中，一般安装的JVM也是64位，其指针也是64位的即8字节，但是一般开启了类型指针压缩，为4字节。 12-XX:UseCompressedClassPointers //开启类型指针压缩-XX:UseCompressedOops //开启普通指针压缩，对于堆内存低于4G会强制使用压缩指针，堆内存高于32G会强制使用8字节指针 一个Object对象包括8个字节的markword、被压缩过的类型指针ClassPointer...</div></div></div></a><a class="pagination-related" href="/2020/04/24/jvm-gc-c1/" title="jvm垃圾收集器G1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-04-24</div><div class="info-item-2">jvm垃圾收集器G1</div></div><div class="info-2"><div class="info-item-1">jvm垃圾收集器G1G1（Garbage-First）G1面向服务端应用的垃圾收集器。   其他垃圾收集器将堆区分为新生代与老年代来进行垃圾收集，而G1直接对新生代与老年代一起回收。   G1将堆划分为多个大小相同的region，记录region垃圾回收的时间与回收获得的空间，维护一个垃圾回收的优先列表。便于预测停顿时间模型。region被分类为Eden、Survivor、Old、Humongous四种类型。 region被分为多个card，一个card分片一般为512Bytes。 每个region都具有自己的Remembered Set（Rset），是point into的设计，即逻辑上记录的是其他region的card中的对象（这些对象引用了当前region中某一card的某个对象），实际上Rset的设计是一个HashTable，一条记录的key值是其他region的起始地址，value是一个集合，记录region中的card数组的索引值。 GC过程G1提供了两种GC方式  Young GC:...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">sail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">48</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#jvm%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E8%BF%87%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">jvm垃圾收集过程</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/16/hello-world/" title="Hello World">Hello World</a><time datetime="2025-03-16T04:21:42.245Z" title="发表于 2025-03-16 12:21:42">2025-03-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/12/01/%E9%98%BF%E9%87%8C%E7%9A%84maven%E4%BE%9D%E8%B5%96http%E5%A4%B1%E6%95%88%E9%97%AE%E9%A2%98/" title="阿里的maven依赖http失效问题">阿里的maven依赖http失效问题</a><time datetime="2020-12-01T09:31:49.000Z" title="发表于 2020-12-01 17:31:49">2020-12-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/11/04/Tomcat%E5%AE%9A%E6%97%B6%E6%A3%80%E6%9F%A5%E6%9C%8D%E5%8A%A1%E7%8A%B6%E6%80%81%E7%9A%84%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC/" title="Tomcat定时检查服务状态的启动脚本">Tomcat定时检查服务状态的启动脚本</a><time datetime="2020-11-04T03:29:25.000Z" title="发表于 2020-11-04 11:29:25">2020-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/" title="RocketMQ详解">RocketMQ详解</a><time datetime="2020-09-11T07:28:43.000Z" title="发表于 2020-09-11 15:28:43">2020-09-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/04/zookeeper/" title="zookeeper">zookeeper</a><time datetime="2020-09-04T06:58:11.000Z" title="发表于 2020-09-04 14:58:11">2020-09-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By sail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 5.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

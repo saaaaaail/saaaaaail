@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>cas、sso的原理详解 | sail home</title><meta name="author" content="sail"><meta name="copyright" content="sail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一、CAS组成CAS包括CAS Server和CAS Client两部分组成 : CAS ServerCAS Server需要独立部署，用于完成对用户的认证工作，包括用户名&#x2F;密码的认证、票据的认证。 CAS ClientCAS Client与受保护的客户端应用部署在一起，用于做登录校验，比如统一后台的服务与CAS客户端一起部署。通过filter的方式过滤从浏览器打到统一后台的每一个请求，分析htt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cas、sso的原理详解">
+<meta property="og:url" content="https://saaaaaail.github.io/saaaaaail/2020/04/19/cas%E3%80%81sso%E7%9A%84%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="sail home">
+<meta property="og:description" content="一、CAS组成CAS包括CAS Server和CAS Client两部分组成 : CAS ServerCAS Server需要独立部署，用于完成对用户的认证工作，包括用户名&#x2F;密码的认证、票据的认证。 CAS ClientCAS Client与受保护的客户端应用部署在一起，用于做登录校验，比如统一后台的服务与CAS客户端一起部署。通过filter的方式过滤从浏览器打到统一后台的每一个请求，分析htt">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png">
+<meta property="article:published_time" content="2020-04-19T13:03:14.000Z">
+<meta property="article:modified_time" content="2025-03-16T04:21:42.245Z">
+<meta property="article:author" content="sail">
+<meta property="article:tag" content="cas">
+<meta property="article:tag" content="sso">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "cas、sso的原理详解",
+  "url": "https://saaaaaail.github.io/saaaaaail/2020/04/19/cas%E3%80%81sso%E7%9A%84%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/",
+  "image": "https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png",
+  "datePublished": "2020-04-19T13:03:14.000Z",
+  "dateModified": "2025-03-16T04:21:42.245Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "sail",
+      "url": "https://saaaaaail.github.io/saaaaaail/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://saaaaaail.github.io/saaaaaail/2020/04/19/cas%E3%80%81sso%E7%9A%84%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'cas、sso的原理详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 5.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">sail home</span></a><a class="nav-page-title" href="/"><span class="site-name">cas、sso的原理详解</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">cas、sso的原理详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-04-19T13:03:14.000Z" title="发表于 2020-04-19 21:03:14">2020-04-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-16T04:21:42.245Z" title="更新于 2025-03-16 12:21:42">2025-03-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="一、CAS组成"><a href="#一、CAS组成" class="headerlink" title="一、CAS组成"></a>一、CAS组成</h1><p>CAS包括CAS Server和CAS Client两部分组成 :</p>
+<h2 id="CAS-Server"><a href="#CAS-Server" class="headerlink" title="CAS Server"></a>CAS Server</h2><p>CAS Server需要独立部署，用于完成对用户的认证工作，包括用户名/密码的认证、票据的认证。</p>
+<h2 id="CAS-Client"><a href="#CAS-Client" class="headerlink" title="CAS Client"></a>CAS Client</h2><p>CAS Client与受保护的客户端应用部署在一起，用于做登录校验，比如统一后台的服务与CAS客户端一起部署。通过filter的方式过滤从浏览器打到统一后台的每一个请求，分析http请求头中是否包含请求Service Ticket，如果没有则说明用户没有经过认证，于是CAS Client会重定向用户请求到CAS Server登录页面并且会带上浏览器要请求的目标地址，输入用户名和密码进行认证，认证成功会生成一个长度相当、唯一、不可伪造的Service Ticket，并且缓存在CAS Server中，并为客户端浏览器生成一个Ticket Granted Cookie（TGC）并重定向到之前浏览器要访问的目标地址（即CAS Client）（附带上生成的ServiceTicket），这时http头中有ST参数，CAS Client会与CAS Server请求认证ST。认证成功Client创建session返回浏览器。</p>
+<h1 id="二、CAS核心票据"><a href="#二、CAS核心票据" class="headerlink" title="二、CAS核心票据"></a>二、CAS核心票据</h1><h2 id="TGT（Ticket-Granting-Ticket）"><a href="#TGT（Ticket-Granting-Ticket）" class="headerlink" title="TGT（Ticket Granting Ticket）"></a>TGT（Ticket Granting Ticket）</h2><p>TGT是CAS为用户签发的登录凭证，是缓存在CAS Server中的对象，封装了Cookie值以及此Cookie值对应的用户信息。用户在浏览器到Client Server之间认证时使用ssl协议，认证成功后生成的Cookie称为TGC，写入到浏览器头部，同时在CAS Server中生成一个TGT对象放入自己的缓存，TGT对象的ID就是cookie的值。 </p>
+<h2 id="TGC（Ticket-Granting-Ticket）"><a href="#TGC（Ticket-Granting-Ticket）" class="headerlink" title="TGC（Ticket Granting Ticket）"></a>TGC（Ticket Granting Ticket）</h2><p>TGC 是存放用户凭证的key值，也是保存在浏览器的Cookie，当与Client Server通信时，会去Server放入缓存中以Cookie为key查询有没有用户信息，如果有说明登录过，如果没有用户需要重新登录。</p>
+<h2 id="ST（Service-Ticket）cas普通模式"><a href="#ST（Service-Ticket）cas普通模式" class="headerlink" title="ST（Service Ticket）cas普通模式"></a>ST（Service Ticket）cas普通模式</h2><p>ST 是CAS签给浏览器的访问某一服务Service的票据，浏览器访问Service时，Service发现用户没有ST，则重定向到SSO Server获取，如果用户包含TGC，则在SSO Server缓存中查询TGT对象，如果存在TGT对象则会签发一个ST对象，将ST作为请求参数重定向到用户要访问的Service，Service获得ST（ST的ticketGrantingTicket属性值是TGT对象），Service（CAS Client）拿着ST与 SSO Server（即CAS Server） 进行验证认证用户的登录状态返回一个xml数据，包含验证成功的信息，若认证成功则Service与浏览器会建立一个Session关系保留登录成功状态，这个作为session保存登录状态的cookie与CAS无关。</p>
+<h2 id="PGT（Proxy-Granting-Ticket）cas代理模式"><a href="#PGT（Proxy-Granting-Ticket）cas代理模式" class="headerlink" title="PGT（Proxy Granting Ticket）cas代理模式"></a>PGT（Proxy Granting Ticket）cas代理模式</h2><p>PGT 是由ST签发的票据。浏览器持有ST去访问Proxy Service，Proxy Service调用SSO Server（CAS Server）的serviceValidate接口验证ST，若在CAS Server上验证成功，CAS Server会首先调用PGTurl（是一个https url）将生成的PGT及PGTIOU传输给Proxy Service，Proxy Service会以PGTIOUS为key，PGT为value存储在Map中；然后CAS会生成验证ST成功的xml消息（包含PGTIOUS）返回给Proxy Service，Proxy Service拿到PGTIOUS会从自身的缓存map中拿到PGT，从中取出用户信息。（PGT中保存着签发ST的TGT对象）</p>
+<h2 id="PT（Proxy-Ticket）cas代理模式"><a href="#PT（Proxy-Ticket）cas代理模式" class="headerlink" title="PT（Proxy Ticket）cas代理模式"></a>PT（Proxy Ticket）cas代理模式</h2><p>PT 是由PGT签发的票据。类似于TGT签发ST，在代理模式下，PT是用户访问back-end service的票据。当用户访问的是一个Web应用，web应用要求一个ST，那么浏览器拿着TGC去获得ST即可访问Web应用，而对于一个C/S结构的应用，得不到cookie。不能直接访问back-end Service 而是通过访问Proxy Service的接口，凭借Proxy Service的PGT获取PT票据然后访问back-end Service，<br>问题是如何获得PGT票据，那么根访问普通代理模式一样首先重定向到SSO Server，两种情况：<br>1、如果有TGC就与Server的TGT比较，成功则生成ST票据作为请求参数，重定向到Proxy Service<br>2、如果没有TGC，SSO Server返回登录界面，用户填写用户名和密码认证，认证成功生成TGT并返回TGC到浏览器头部，同时签发一个ST票据作为请求参数重定向到Proxy Service<br>通过以上两步任意一步，Proxy Service 或得ST票据与SSO Server进行认证，经过PGT中的步骤获得PGT票据，然后Proxy Service传递PGT与back-end Service的地址给SSO Server获得PT票据，Proxy Service将PT票据作为请求参数调用back-end Service接口，back-end Service获得PT票据调用SSO Server的接口认证PT票据，认证成功则返回业务数据给Proxy Service。</p>
+<h1 id="三、CAS流程解读（普通模式）"><a href="#三、CAS流程解读（普通模式）" class="headerlink" title="三、CAS流程解读（普通模式）"></a>三、CAS流程解读（普通模式）</h1><p><img src="1.jpg" alt="sso流程原理图"></p>
+<h3 id="详细过程"><a href="#详细过程" class="headerlink" title="详细过程:"></a>详细过程:</h3><ol>
+<li>用户访问产品 a，域名是 <a target="_blank" rel="noopener" href="http://www.a.cn。">www.a.cn。</a></li>
+<li>由于用户没有携带在 a 服务器上登录的 a cookie，所以 a 服务器返回 http 重定向，重定向的 url 是 SSO 服务器的地址，同时 url 的 query 中通过参数指明登录成功后，回跳的a 页面。重定向的url 形如 sso.cn/login?service=https%3A%2F%2F<a target="_blank" rel="noopener" href="http://www.a.cn。">www.a.cn。</a></li>
+<li>由于用户没有携带在 SSO 服务器上登录的 TGC（看上面，票据之一），所以 SSO 服务器判断用户未登录，给用户显示统一登录界面。用户在 SSO 的页面上进行登录操作。</li>
+<li>登录成功后，SSO 服务器构建用户在 SSO 登录的 TGT（又一个票据，用于身份验证TGC，并生成ST票据），同时返回一个 http 重定向。这里注意：<blockquote>
+<ul>
+<li>重定向地址为之前写在 query 里的 a 页面。</li>
+<li>重定向地址的 query 中包含 sso 服务器派发的 ST。</li>
+<li>重定向的 http response 中包含写 cookie 的 header。这个 cookie 代表用户在 SSO 中的登录状态，它的值就是 TGC，保存在了sso的域下面，下此访问sso会带上这个cookie。</li>
+</ul>
+</blockquote>
+</li>
+<li>浏览器重定向到产品 a。此时重定向的 url 中携带着 SSO 服务器生成的 ST。</li>
+<li>根据 ST，a 服务器直接向 SSO 服务器发送请求，SSO 服务器验证票据的有效性。验证成功后，a 服务器知道用户已经在 sso 登录了，于是 a 服务器构建用户登录 session，记为 a session。并将 cookie 写入浏览器。注意，此处的 cookie 和 session 保存的是用户在 a 服务器的登录状态，和 CAS 无关。</li>
+</ol>
+<blockquote>
+<p>注意上面只能在同一个浏览器访问的时候才能实现单点登录，因为当用户访问b的时候，这个时候要重定向到sso服务器  sso.cn/login?service=https%3A%2F%2F<a target="_blank" rel="noopener" href="http://www.b.cn。">www.b.cn。</a> 由于之前访问a的时候浏览器在sso域下生成了cookie TGC，这时候重定向到sso旧会带上这个TGC，然后sso服务器使用TGC寻找其服务器缓存的TGT对象，并生成一个ST票据，将ST作为query参数重定向回b服务器，这时候b服务器就拿着这个ST直接请求sso服务器验证ST的正确性，验证成功的话，b就构建用户登录 session。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://saaaaaail.github.io/saaaaaail">sail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://saaaaaail.github.io/saaaaaail/2020/04/19/cas%E3%80%81sso%E7%9A%84%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/">https://saaaaaail.github.io/saaaaaail/2020/04/19/cas%E3%80%81sso%E7%9A%84%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://saaaaaail.github.io/saaaaaail" target="_blank">sail home</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/cas/">cas</a><a class="post-meta__tags" href="/tags/sso/">sso</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2020/01/24/jvm-gc-cms/" title="jvm垃圾收集器CMS"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">jvm垃圾收集器CMS</div></div><div class="info-2"><div class="info-item-1">jvm垃圾收集器CMSCMS（Concurrent Mark Sweep）并发标记-清除算法。分为四个步骤:  初始标记: 标记一下与GC roots直接关联的对象，需要全局暂停。  并发标记: 进行GC roots tracing 过程，耗时最长，不用暂停，与用户线程并行。 重新标记: 对并发标记阶段，对象状态发生了变化的对象进行修改，需要全局暂停。 并发清除: 对前面阶段没有标记的对象进行清除，不用暂停，与用户线程并行。  优点:  并发收集 低停顿  CMS不足:  吞吐量低: 暂停时间短，导致gc时间多与用户线程争抢cpu，导致吞吐量低，cpu利用率不高。 无法处理浮动垃圾，可能出现Concurrent Mode Failure: 浮动垃圾是并发清除阶段，用户线程继续运行而产生的垃圾，这部分垃圾只能下一次GC的时候才能回收。如果预留的内存不足以存放浮动垃圾会出现Concurrent Mode Failure，此时jvm临时启用Serial Old来替代CMS。 标记-清除算法会产生内存碎片。  </div></div></div></a><a class="pagination-related" href="/2020/04/21/jvm%E7%9F%A5%E8%AF%86%E7%82%B9%E5%A4%8D%E4%B9%A0/" title="jvm知识点复习"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">jvm知识点复习</div></div><div class="info-2"><div class="info-item-1">一、知识点jvm内存模型 程序计数器 虚拟机栈 本地方法栈 堆区 方法区 运行时常量池  程序计数器线程私有，如果正在执行的方法是java方法，则记录的是字节码指令的地址，如果正在执行的方法是native方法，则记录为空。不会报栈溢出、内存溢出异常。 虚拟机栈线程私有，保存局部变量表、操作数栈、方法出口、动态链接等。栈深度大于虚拟机允许的最大深度，那么会报栈溢出异常。如果虚拟机栈内存不够，且无法申请到新的内存，那么会报内存溢出异常。 本地方法栈线程私有，与虚拟机栈类似。 堆区堆是jvm管理的最大一块内存，线程共享。存放对象实例。是java GC管理的主要区域。 方法区用于存放已经被加载的类的信息、常量、静态变量、即使编译器编译后的代码等数据。 从jdk1.8开始，移除永久代，将方法区移到元空间，位于本地内存，而不是jvm被分配的内存。 永久代里的数据常量池和静态变量放到堆中，类的信息放到元空间里。 运行时常量池运行时常量池逻辑上属于方法区，1.8版本以后放入堆区。 主要存 class文件中的常量池在被加载以后会放入这个区域 (编译期间生成的字面量和符号引用)  字面量:...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">sail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">48</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81CAS%E7%BB%84%E6%88%90"><span class="toc-number">1.</span> <span class="toc-text">一、CAS组成</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#CAS-Server"><span class="toc-number">1.1.</span> <span class="toc-text">CAS Server</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CAS-Client"><span class="toc-number">1.2.</span> <span class="toc-text">CAS Client</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81CAS%E6%A0%B8%E5%BF%83%E7%A5%A8%E6%8D%AE"><span class="toc-number">2.</span> <span class="toc-text">二、CAS核心票据</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#TGT%EF%BC%88Ticket-Granting-Ticket%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">TGT（Ticket Granting Ticket）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TGC%EF%BC%88Ticket-Granting-Ticket%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">TGC（Ticket Granting Ticket）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ST%EF%BC%88Service-Ticket%EF%BC%89cas%E6%99%AE%E9%80%9A%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">ST（Service Ticket）cas普通模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PGT%EF%BC%88Proxy-Granting-Ticket%EF%BC%89cas%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.4.</span> <span class="toc-text">PGT（Proxy Granting Ticket）cas代理模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PT%EF%BC%88Proxy-Ticket%EF%BC%89cas%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.5.</span> <span class="toc-text">PT（Proxy Ticket）cas代理模式</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81CAS%E6%B5%81%E7%A8%8B%E8%A7%A3%E8%AF%BB%EF%BC%88%E6%99%AE%E9%80%9A%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">三、CAS流程解读（普通模式）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E8%BF%87%E7%A8%8B"><span class="toc-number">3.0.1.</span> <span class="toc-text">详细过程:</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/16/hello-world/" title="Hello World">Hello World</a><time datetime="2025-03-16T04:21:42.245Z" title="发表于 2025-03-16 12:21:42">2025-03-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/12/01/%E9%98%BF%E9%87%8C%E7%9A%84maven%E4%BE%9D%E8%B5%96http%E5%A4%B1%E6%95%88%E9%97%AE%E9%A2%98/" title="阿里的maven依赖http失效问题">阿里的maven依赖http失效问题</a><time datetime="2020-12-01T09:31:49.000Z" title="发表于 2020-12-01 17:31:49">2020-12-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/11/04/Tomcat%E5%AE%9A%E6%97%B6%E6%A3%80%E6%9F%A5%E6%9C%8D%E5%8A%A1%E7%8A%B6%E6%80%81%E7%9A%84%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC/" title="Tomcat定时检查服务状态的启动脚本">Tomcat定时检查服务状态的启动脚本</a><time datetime="2020-11-04T03:29:25.000Z" title="发表于 2020-11-04 11:29:25">2020-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/" title="RocketMQ详解">RocketMQ详解</a><time datetime="2020-09-11T07:28:43.000Z" title="发表于 2020-09-11 15:28:43">2020-09-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/04/zookeeper/" title="zookeeper">zookeeper</a><time datetime="2020-09-04T06:58:11.000Z" title="发表于 2020-09-04 14:58:11">2020-09-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By sail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 5.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

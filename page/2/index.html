@@ -1,0 +1,234 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>sail home - sail</title><meta name="author" content="sail"><meta name="copyright" content="sail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="sail home">
+<meta property="og:url" content="https://saaaaaail.github.io/saaaaaail/page/2/index.html">
+<meta property="og:site_name" content="sail home">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png">
+<meta property="article:author" content="sail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://saaaaaail.github.io/saaaaaail/page/2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'sail home',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><meta name="generator" content="Hexo 5.3.0"></head><body><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">sail home</span></a></span><div id="menus"></div></nav><div id="site-info"><h1 id="site-title">sail home</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/24/Activiti6%E9%83%A8%E5%88%86%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Activiti6部分源码解析">Activiti6部分源码解析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-24T11:47:17.000Z" title="发表于 2020-08-24 19:47:17">2020-08-24</time></span></div><div class="content">开启流程实例123ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(ActivitiConstant.VIDEO_TRANSLATE_PROCESS_ID,                        translateTask.getTranslatePartnerId().toString(),                        vars); 以startProcessInstanceByKey方法为例，点进去 123public ProcessInstance startProcessInstanceByKey(String processDefinitionKey, String businessKey, Map&lt;String, Object&gt; variables) &#123;    return (ProcessInstance)this.commandExecutor.execute(new...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/24/nginx%E8%AF%A6%E8%A7%A3/" title="nginx详解">nginx详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-24T05:36:29.000Z" title="发表于 2020-08-24 13:36:29">2020-08-24</time></span></div><div class="content">nginx负载均衡策略 轮询 权重 依据ip分配 连接数最少 响应时间短 url_hash  </div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/23/Spring-Boot-%E7%9F%A5%E8%AF%86%E7%82%B9%E8%AF%A6%E8%A7%A3/" title="Spring_Boot_知识点详解">Spring_Boot_知识点详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-23T13:39:52.000Z" title="发表于 2020-08-23 21:39:52">2020-08-23</time></span></div><div class="content">自动装配原理ioc相关FactoryBean和BeanFactoryFactoryBean是工厂Bean，是Spring提供的实例化比较复杂的对象的一种方式，通过实现FactoryBean接口，重写getObject方法来实现一个工厂Bean，隐藏了实现细节，简化xml的配置。BeanFactory是ioc容器的顶级接口。主要完成Bean的注册，创建，访问等工作。 aop原理 在around中可以用,此时可以使用process()来执行被包裹的代码。  123public void around(ProceedingJoinPoint joinpoint) &#123;      joinpoint.proceed();  &#125;   1 2 3 6 733 2 3 6 5  joinPoint可以获得的参数1234567joinpoint.getArgs();//輸入的參數列表    joinpoint.getTarget().getClass().getName();//類全路徑   ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/22/%E5%88%86%E5%B8%83%E5%BC%8F%E6%A6%82%E5%BF%B5%E7%90%86%E8%A7%A3/" title="分布式概念理解">分布式概念理解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-22T05:29:12.000Z" title="发表于 2020-08-22 13:29:12">2020-08-22</time></span></div><div class="content">分布式概念理解CAP分区容错性P 指每个服务都会部署多个节点，保证此服务的一个节点挂掉以后，此服务的其他节点仍然可以响应，这就是分区容错性。 也是分布式系统必须保证的特性。 在部署好该服务的多个节点以后就要考虑，这些节点之间数据为了保持一致性要进行数据复制，此过程就会出现数据一致性C，必须要等到数据一致以后再返回给调用者响应。这样就会影响服务的可用性A，因为如果网络问题，数据复制太慢了，或者失败了就会导致响应超时，就失去了系统的可用性A。 如果不强制数据一致性。允许在数据还没有同步完之前返回响应，这样节点数据就有可能不一致，但是这满足了可用性，失去了一致性。 结论：一个高可用的分布式系统分区容错性P是一定要满足的，在此基础上，只能满足可用性A或者一致性C。 </div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/19/java%E5%AE%B9%E5%99%A8%E8%AF%A6%E8%A7%A3/" title="java容器详解">java容器详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-19T12:34:37.000Z" title="发表于 2020-08-19 20:34:37">2020-08-19</time></span></div><div class="content">java容器详解HashMap12345int capacity;               //table数组长度的默认值是16int threshold;             // 所能容纳的key-value对极限 final float loadFactor;    // 负载因子默认0.75，可以大于1int modCount;               //用于记录内部结构发生变化的次数，主要用于迭代判失败int size;                   //实际存在的键值对数量 threshold为HashMap能容纳的最大数据量的Node键值对的个数，threshold = 数组长度 * loadFactor 数组table的长度是 2的n次方 便于取模与与扩容时的优化。 首先是求key值在桶中位置的Hash 123456static final int hash(Object key) &#123;   //jdk1.8 &amp; jdk1.7     int h;     // h = key.hashCode() 为第一步...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/18/ConcurrentHashMap%E8%AF%A6%E8%A7%A3/" title="ConcurrentHashMap详解">ConcurrentHashMap详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-18T13:02:00.000Z" title="发表于 2020-08-18 21:02:00">2020-08-18</time></span></div><div class="content">ConcurrentHashMap详解jdk1.7数据结构由一个Segment数组构成，每个Segment数组元素是一个HashEntry数组，一个HashEntry节点就是一个链表的kv键值对节点。Segment数组的大小由size来表示。   12345int size =1;while(size &lt; concurrencyLevel) &#123;++a;size &lt;&lt;=1;&#125;       size的大小为2的n次方，没有指定concurrencyLevel默认值为16，如果指定的话size最大值能到65536。 每个HashEntry的数组大小用cap来表示，也是2的n次方 123static class  Segment&lt;K,V&gt; extends  ReentrantLock implements  Serializable...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/18/LongAdder%E8%AF%A6%E8%A7%A3/" title="LongAdder详解">LongAdder详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-18T12:57:38.000Z" title="发表于 2020-08-18 20:57:38">2020-08-18</time></span></div><div class="content">LongAdder建议参考ConcurrentHashMap addCount与fulladdCount方法源码，类似~~ </div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/18/ForkJoinPool%E8%AF%A6%E8%A7%A3/" title="ForkJoinPool详解">ForkJoinPool详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-18T12:57:25.000Z" title="发表于 2020-08-18 20:57:25">2020-08-18</time></span></div><div class="content"> 文章参考博客分析jdk-1.8-ForkJoinPool实现原理(上)、分析jdk-1.8-ForkJoinPool实现原理(下)  ForkJoinPool详解 介绍一下forkJoinPool?这个线程池是ExecutorsService的另一个分支，用在多核CPU，而且任务可以拆分为子任务去解决的那种情况。里面会默认创建cpu核数的工作线程，每个工作线程具有自己的阻塞队列，从对尾取自己得任务，如果自己阻塞队列里面没有任务了去其他工作线程的队头去偷任务。  分开又合并，分而治之。 核心算法是work-stealing算法，翻译过来是工作窃取算法。 有三个重要角色:  ForkJoinWorkerThread ，包装Thread，后面简称worker线程 workQueue ， 双向工作队列 ForkJoinTask...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/12/SpringBoot%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E8%AF%A6%E8%A7%A3/" title="SpringBoot自动装配详解">SpringBoot自动装配详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-12T10:40:51.000Z" title="发表于 2020-08-12 18:40:51">2020-08-12</time></span></div><div class="content">@EnableAutoConfiguration1234567891011121314@Target(&#123;ElementType.TYPE&#125;)@Retention(RetentionPolicy.RUNTIME)@Documented@Inherited@AutoConfigurationPackage@Import(&#123;AutoConfigurationImportSelector.class&#125;)//1.5.x版本@Import(&#123;EnableAutoConfigurationImportSelector.class&#125;)public @interface EnableAutoConfiguration &#123;    String ENABLED_OVERRIDE_PROPERTY = &quot;spring.boot.enableautoconfiguration&quot;;    Class&lt;?&gt;[] exclude() default &#123;&#125;;    String[]...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2020/08/11/redis%E7%9F%A5%E8%AF%86%E7%82%B9%E8%AF%A6%E8%A7%A3/" title="redis知识点详解">redis知识点详解</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-08-11T05:32:58.000Z" title="发表于 2020-08-11 13:32:58">2020-08-11</time></span></div><div class="content">Redis知识点详解Redis是非关系型的内存键值对数据库，速度很快，可以存储键与五种类型的值之间的对应关系。 键的类型只支持字符串，值得类型包括: 字符串String、列表List、集合Set、散列表HashMap、有序集合ZSet 数据类型   数据类型 可以存储的值 操作    STRING 字符串、整数、浮点数 对整个字符串或者字符串的一部分进行操作；对整数或浮点数执行自增减操作   LIST 列表 从两段压入、弹出元素   SET 无序集合 添加、获取、移除单个元素；检查一个元素是否存在于集合中；计算交集、并集、差集；从集合里面随机获取元素   HASH 包含键值对的无序散列表 添加、获取、移除单个键值对；获取所有键值对；检查键是否存在   ZSET 有序集合 添加、获取、删除元素；根据分值范围或者成员来获取元素；计算一个键值分数的排名   STRING12345678&gt; set hello worldOK&gt; get hello&quot;world&quot;&gt; del hello(integer) 1&gt; get...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#content-inner">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/#content-inner">5</a><a class="extend next" rel="next" href="/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">sail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">48</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/16/hello-world/" title="Hello World">Hello World</a><time datetime="2025-03-16T04:21:42.245Z" title="发表于 2025-03-16 12:21:42">2025-03-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/12/01/%E9%98%BF%E9%87%8C%E7%9A%84maven%E4%BE%9D%E8%B5%96http%E5%A4%B1%E6%95%88%E9%97%AE%E9%A2%98/" title="阿里的maven依赖http失效问题">阿里的maven依赖http失效问题</a><time datetime="2020-12-01T09:31:49.000Z" title="发表于 2020-12-01 17:31:49">2020-12-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/11/04/Tomcat%E5%AE%9A%E6%97%B6%E6%A3%80%E6%9F%A5%E6%9C%8D%E5%8A%A1%E7%8A%B6%E6%80%81%E7%9A%84%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC/" title="Tomcat定时检查服务状态的启动脚本">Tomcat定时检查服务状态的启动脚本</a><time datetime="2020-11-04T03:29:25.000Z" title="发表于 2020-11-04 11:29:25">2020-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/" title="RocketMQ详解">RocketMQ详解</a><time datetime="2020-09-11T07:28:43.000Z" title="发表于 2020-09-11 15:28:43">2020-09-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/04/zookeeper/" title="zookeeper">zookeeper</a><time datetime="2020-09-04T06:58:11.000Z" title="发表于 2020-09-04 14:58:11">2020-09-04</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/java/"><span class="card-category-list-name">java</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"><span class="card-category-list-name">计算机网络</span><span class="card-category-list-count">1</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 1.1em; color: #999">设计模式</a> <a href="/tags/sail/" style="font-size: 1.1em; color: #999">sail</a> <a href="/tags/java/" style="font-size: 1.43em; color: #99a6b9">java</a> <a href="/tags/Tomcat/" style="font-size: 1.1em; color: #999">Tomcat</a> <a href="/tags/%E6%A6%82%E8%A6%81%E8%AE%BE%E8%AE%A1/" style="font-size: 1.1em; color: #999">概要设计</a> <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 1.1em; color: #999">操作系统</a> <a href="/tags/java%E5%B9%B6%E5%8F%91/" style="font-size: 1.5em; color: #99a9bf">java并发</a> <a href="/tags/juc/" style="font-size: 1.43em; color: #99a6b9">juc</a> <a href="/tags/zookeeper/" style="font-size: 1.1em; color: #999">zookeeper</a> <a href="/tags/sso/" style="font-size: 1.1em; color: #999">sso</a> <a href="/tags/spring/" style="font-size: 1.37em; color: #99a4b2">spring</a> <a href="/tags/CAS/" style="font-size: 1.1em; color: #999">CAS</a> <a href="/tags/G1/" style="font-size: 1.1em; color: #999">G1</a> <a href="/tags/gc/" style="font-size: 1.23em; color: #999ea6">gc</a> <a href="/tags/%E8%AF%A6%E7%BB%86%E8%AE%BE%E8%AE%A1/" style="font-size: 1.1em; color: #999">详细设计</a> <a href="/tags/importResource/" style="font-size: 1.1em; color: #999">@importResource</a> <a href="/tags/spring-boot/" style="font-size: 1.1em; color: #999">spring boot</a> <a href="/tags/mysql/" style="font-size: 1.1em; color: #999">mysql</a> <a href="/tags/start/" style="font-size: 1.1em; color: #999">start</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 1.17em; color: #999c9f">线程池</a> <a href="/tags/nginx/" style="font-size: 1.1em; color: #999">nginx</a> <a href="/tags/spring-boot/" style="font-size: 1.1em; color: #999">spring-boot</a> <a href="/tags/jvm/" style="font-size: 1.3em; color: #99a1ac">jvm</a> <a href="/tags/Activiti6/" style="font-size: 1.1em; color: #999">Activiti6</a> <a href="/tags/aqs/" style="font-size: 1.1em; color: #999">aqs</a> <a href="/tags/import/" style="font-size: 1.1em; color: #999">@import</a> <a href="/tags/cms/" style="font-size: 1.1em; color: #999">cms</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 1.1em; color: #999">数据库</a> <a href="/tags/aop/" style="font-size: 1.1em; color: #999">aop</a> <a href="/tags/io/" style="font-size: 1.1em; color: #999">io</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 1.1em; color: #999">事务</a> <a href="/tags/cas/" style="font-size: 1.1em; color: #999">cas</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 1.1em; color: #999">数据结构</a> <a href="/tags/%E7%BA%A2%E9%BB%91%E6%A0%91/" style="font-size: 1.1em; color: #999">红黑树</a> <a href="/tags/spring-session/" style="font-size: 1.1em; color: #999">spring-session</a> <a href="/tags/%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90/" style="font-size: 1.1em; color: #999">需求分析</a> <a href="/tags/redis/" style="font-size: 1.17em; color: #999c9f">redis</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 1.1em; color: #999">分布式</a> <a href="/tags/Spring-Boot/" style="font-size: 1.1em; color: #999">Spring Boot</a> <a href="/tags/RocketMQ/" style="font-size: 1.1em; color: #999">RocketMQ</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/03/">
+            <span class="card-archive-list-date">
+              三月 2025
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/12/">
+            <span class="card-archive-list-date">
+              十二月 2020
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/11/">
+            <span class="card-archive-list-date">
+              十一月 2020
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/09/">
+            <span class="card-archive-list-date">
+              九月 2020
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/08/">
+            <span class="card-archive-list-date">
+              八月 2020
+            </span>
+            <span class="card-archive-list-count">17</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/07/">
+            <span class="card-archive-list-date">
+              七月 2020
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/06/">
+            <span class="card-archive-list-date">
+              六月 2020
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/05/">
+            <span class="card-archive-list-date">
+              五月 2020
+            </span>
+            <span class="card-archive-list-count">5</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">45</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-03-16T12:47:04.162Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By sail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 5.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>操作系统原理详解 | sail home</title><meta name="author" content="sail"><meta name="copyright" content="sail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="linux操作系统原理详解最近要系统性的复习操作系统准备面试，决定结合linux来一起看看操作系统原理。参考《深入理解Linux内核(第三版)》 进程管理进程被定义为程序执行时的一个实例。 进程描述符进程描述符为进程控制块PCB，与进程一一对应，由进程描述符指针指向，在Linux中定义为task_struct类型的结构，描述进程的基本信息和运行状态。 进程描述符和进程的内核态堆栈存放在一个单独的8">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统原理详解">
+<meta property="og:url" content="https://saaaaaail.github.io/saaaaaail/2020/07/02/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="sail home">
+<meta property="og:description" content="linux操作系统原理详解最近要系统性的复习操作系统准备面试，决定结合linux来一起看看操作系统原理。参考《深入理解Linux内核(第三版)》 进程管理进程被定义为程序执行时的一个实例。 进程描述符进程描述符为进程控制块PCB，与进程一一对应，由进程描述符指针指向，在Linux中定义为task_struct类型的结构，描述进程的基本信息和运行状态。 进程描述符和进程的内核态堆栈存放在一个单独的8">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png">
+<meta property="article:published_time" content="2020-07-02T12:40:59.000Z">
+<meta property="article:modified_time" content="2025-03-16T04:21:42.257Z">
+<meta property="article:author" content="sail">
+<meta property="article:tag" content="操作系统">
+<meta property="article:tag" content="linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "操作系统原理详解",
+  "url": "https://saaaaaail.github.io/saaaaaail/2020/07/02/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/",
+  "image": "https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png",
+  "datePublished": "2020-07-02T12:40:59.000Z",
+  "dateModified": "2025-03-16T04:21:42.257Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "sail",
+      "url": "https://saaaaaail.github.io/saaaaaail/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://saaaaaail.github.io/saaaaaail/2020/07/02/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '操作系统原理详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 5.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">sail home</span></a><a class="nav-page-title" href="/"><span class="site-name">操作系统原理详解</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">操作系统原理详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-07-02T12:40:59.000Z" title="发表于 2020-07-02 20:40:59">2020-07-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-16T04:21:42.257Z" title="更新于 2025-03-16 12:21:42">2025-03-16</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="linux操作系统原理详解"><a href="#linux操作系统原理详解" class="headerlink" title="linux操作系统原理详解"></a>linux操作系统原理详解</h1><p>最近要系统性的复习操作系统准备面试，决定结合linux来一起看看操作系统原理。参考《深入理解Linux内核(第三版)》</p>
+<h2 id="进程管理"><a href="#进程管理" class="headerlink" title="进程管理"></a>进程管理</h2><p>进程被定义为程序执行时的一个实例。</p>
+<h3 id="进程描述符"><a href="#进程描述符" class="headerlink" title="进程描述符"></a><strong>进程描述符</strong></h3><p>进程描述符为进程控制块PCB，与进程一一对应，由进程描述符指针指向，在Linux中定义为task_struct类型的结构，描述进程的基本信息和运行状态。</p>
+<p>进程描述符和进程的内核态堆栈存放在一个单独的8kb内存区中。esp寄存器指针指向栈顶。这俩东西配对存储，使得很容易通过esp指针获得进程描述符的指针。<br>这俩东西的起始地址方向相反，进程描述符指针+8k就得到了内核栈的栈顶指针。</p>
+<blockquote>
+<p>linux内核2.4中的定义 </p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">task_union</span> &#123;</span></span><br><span class="line">      <span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span> <span class="title">task</span>;</span></span><br><span class="line">      <span class="type">unsigned</span> <span class="type">long</span> <span class="built_in">stack</span>[INIT_TASK_SIZE/<span class="keyword">sizeof</span>(<span class="type">long</span>)];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>内核堆栈与task_struct分配在一个8kb的物理块，内核堆栈约占7kb，栈顶位于高位地址，然后由高地址向低地址扩展，当内核栈栈顶指针到达task_struct时会发生栈溢出，task位于8kb物理块的低位地址约占1kb大小</p>
+</blockquote>
+<p><strong>PCB通常包含的内容</strong>:<br>|进程描述信息|进程控制和管理信息|资源分配清单|处理机相关信息|<br>|-|-|-|-|<br>|进程标识符(PID)|进程当前状态|代码段指针|通用寄存器值|<br>|用户标识符(UID)|进程优先级|数据段指针|地址寄存器值|<br>||代码运行入口地址|堆栈段指针|控制寄存器值|<br>||程序的外存地址|文件描述符|标志寄存器值|<br>||进入内存时间|键盘|状态字|<br>||处理机占用时间|鼠标||<br>||信号量使用|||          </p>
+<h4 id="进程的堆栈"><a href="#进程的堆栈" class="headerlink" title="进程的堆栈"></a><strong>进程的堆栈</strong></h4><p>每个进程都有自己的堆栈，内核在创建一个新的进程时，在创建进程控制块task_struct的同时，也为进程创建自己堆栈。一个进程有2个堆栈，用户堆栈和内核堆栈；用户堆栈的空间指向用户地址空间，内核堆栈的空间指向内核地址空间。当进程在用户态运行时，CPU堆栈指针寄存器指向的用户堆栈地址，使用用户堆栈，当进程运行在内核态时，CPU堆栈指针寄存器指向的是内核栈空间地址，使用的是内核栈；</p>
+<h3 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a><strong>进程状态</strong></h3><p>在操作系统概念中的状态为：<br>可运行状态、阻塞状态、终止状态</p>
+<p>在linux中的状态：<br><strong>可运行状态</strong>:要么占用CPU执行，要么准备执行。<br><strong>可中断的等待状态</strong>:进程被挂起，直到一个条件，一个信号传递过来唤醒进程。<br><strong>不可中断的等待状态</strong>:进程必须等待，不能响应软中断，直到特定的事件发生。<br><strong>暂停状态</strong>:进程的执行被暂停，调试的时候会被暂停，资源被回收。<br><strong>僵死状态</strong>:进程执行结束，资源被回收除了task_struct结构，但是父进程还没有进行wait系列的系统调用返回死进程的信息。在发布wait()系统调用之前，内核不能丢弃包含在死进程描述符里的数据，父进程可能还需要他。</p>
+<blockquote>
+<p>僵尸进程与孤儿进程：<br>僵尸进程： 一个父进程利用fork创建子进程，如果子进程退出，而父进程没有利用wait 或者  waitpid 来获取子进程的状态信息，那么子进程的状态描述符依然保存在系统中。<br>孤儿进程：一个父进程退出， 而它的一个或几个子进程仍然还在运行，那么这些子进程就会变成孤儿进程，孤儿进程将被init进程（进程号为1）所收养，并由init进程对它们完成状态收集的工作<br>init进程：<br>在内核启动阶段就会创建init进程，init进程是所有进程的父进程。</p>
+</blockquote>
+<h3 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a><strong>进程切换</strong></h3><p>进程切换只发生在内核态</p>
+<h4 id="进程上下文"><a href="#进程上下文" class="headerlink" title="进程上下文"></a><strong>进程上下文</strong></h4><p>进程切换现场称为进程上下文(context)，包含了一个进程所具有的全部信息，一般包括：进程控制块（Process Control Block，PCB）、有关程序段和相应的数据集。</p>
+<h4 id="用户栈切换到内核栈"><a href="#用户栈切换到内核栈" class="headerlink" title="用户栈切换到内核栈"></a><strong>用户栈切换到内核栈</strong></h4><p>当进程由于中断或系统调用从用户态转换到内核态时，进程所使用的栈也要从用户栈切换到内核栈。系统调用实质就是通过指令产生中断，称为软中断。进程因为中断（软中断或硬件产生中断），使得CPU切换到特权工作模式，此时进程陷入内核态，进程进入内核态后，首先把用户态的堆栈地址保存在内核堆栈中（保存用户堆栈指针是为了能从内核态切换回来的时候恢复现场），然后设置CPU堆栈指针寄存器的地址为内核栈地址，这样就完成了用户栈向内核栈的切换。</p>
+<blockquote>
+<p>进入内核态以后回来的时候能知道用户栈栈顶指针的位置，那么当进入内核态的时候如何知道的内核态堆栈指针的位置了，根据进程描述符的指针就可以算出内核态堆栈栈顶指针的位置，因为进程控制块与内核堆栈分配在一个连续的8kb空间里面。</p>
+</blockquote>
+<h4 id="进程切换-1"><a href="#进程切换-1" class="headerlink" title="进程切换"></a><strong>进程切换</strong></h4><p>进程切换发生在内核态，这时候即将切换的进程已经陷入到了内核态。</p>
+<p>当一个进程的时间片用完，经过线程调度以后要切换为其他进程，首先要保存线场当前进程的cpu里的寄存器的值都入栈，然后将进程的页表切换为目标进程的页表，然后切换内核堆栈与硬件上下文。</p>
+<ol>
+<li>调用switch_mm()函数进行进程页表的切换；</li>
+<li>调用 switch_to() 函数进行 CPU寄存器切换；</li>
+</ol>
+<h4 id="硬中断与软中断"><a href="#硬中断与软中断" class="headerlink" title="硬中断与软中断"></a>硬中断与软中断</h4><p>硬中断通常是由外部设备所产生的，通过中断线的电信号到达中断控制器，由中断控制器将中断号发给cpu，然后cpu去确定中断处理程序入口地址，置为PC，然后cpu执行。硬中断的特定就是响应迅速，处理快。</p>
+<p>软中断通常是由运行着的进程所产生的中断。通过特定的指令产生中断，而且软中断的中断号是自己指定的，然后cpu去执行，而且常常是使用内核代码处理硬中断未完成的工作 ，属于中断的下半部。</p>
+<h3 id="进程创建"><a href="#进程创建" class="headerlink" title="进程创建"></a><strong>进程创建</strong></h3><p>在linux系统中，系统启动以后第一个进程由系统来创建，其余进程都必须由已存在的进程来创建，创建一个子进程的系统调用为fork()，我们都知道一个进程的数据包含BSS段（存未初始化的全局变量）、数据段（存初始化后的全局变量）、代码段（存放程序代码）、堆（存放malloc动态分配的内存）、栈（存局部变量）五部分，fork()创建进程会复制父进程的这些数据结构，但是不是与父进程共享而是单独分配的内存，fork在linux中使用的写时复制技术，刚开始是共享父进程数据段，在写数据段时才会进行复制。</p>
+<h3 id="内核线程"><a href="#内核线程" class="headerlink" title="内核线程"></a><strong>内核线程</strong></h3><p>内核经常需要在后台执行一些耗时操作，就通过内核线程来实现，只在内核态运行，也没有独立的地址空间</p>
+<h3 id="撤销进程"><a href="#撤销进程" class="headerlink" title="撤销进程"></a><strong>撤销进程</strong></h3><p>进程终止的一般方式为调用exit()系统调用。</p>
+<h3 id="进程调度"><a href="#进程调度" class="headerlink" title="进程调度"></a><strong>进程调度</strong></h3><p>进程调度的过程就是选择哪个进程去占用cpu执行。</p>
+<p>进程调度通过不同的进程调度算法来决定如何调度。   </p>
+<blockquote>
+<p>linux中动态优先级数值越小，动态优先级越高。</p>
+</blockquote>
+<p>linux调度策略是基于优先级排队的，每个进程都与一个值关联，这个优先级是动态的，对于长时间没有使用CPU的的进程动态提升他们的优先级（提升优先级通过降低优先级数值，对于已经占用CPU很长时间的进程动态减少优先级来处罚。</p>
+<p>一般将进程区分为三类:  </p>
+<h4 id="交互式进程"><a href="#交互式进程" class="headerlink" title="交互式进程:"></a><strong>交互式进程</strong>:</h4><p>进程经常与用户交互，需要花时间等待用户操作，当输入被接受时，必须很快唤醒进程。</p>
+<h5 id="时间片轮转"><a href="#时间片轮转" class="headerlink" title="时间片轮转"></a>时间片轮转</h5><p>将所有的就绪的进程按照FCFS的顺序排成一个队列，每次调度把CPU时间分给队首进程，该进程可以执行他获得的时间片，时间片用完了就触发定时中断，挂起该进程并排到队尾，继续给此时对头的进程分配时间片。</p>
+<ul>
+<li>时间片轮转的效率与一次分配的时间片有关系，太短了导致进程切换频繁，CPU利用率低，太长了就没有实时性了。<h5 id="动态优先级调度"><a href="#动态优先级调度" class="headerlink" title="动态优先级调度"></a>动态优先级调度</h5>类似于动态时间片轮转。<br>为每个进程分配一个优先级，按进程优先级进行调度，而且会动态修改进程的优先级。</li>
+</ul>
+<p>linux采用的此种方式进行优先级调度。会给每个进程都分配两种优先级。</p>
+<ul>
+<li><strong>静态优先级</strong> 这种优先级由用户赋给实时进程，范围由1到99，越小优先级越高，调度程序不会改变他。</li>
+<li><strong>动态优先级</strong> 这种优先级只用于普通进程，实质上它是基本时间片与当前时期内剩余时间片之和。</li>
+</ul>
+<p>linux进行调度需要的数据结构都记录在进程描述符中，包括以下几个域，简单记录下：</p>
+<ul>
+<li>need_reached 由ret_from_intr()检查的一个标志，决定是否调用schedule()函数</li>
+<li>policy 调度的类型，可选值如下:<ul>
+<li>SCHED_FIFO 先入先出的实时进程</li>
+<li>SCHED_RR 循环轮转的实时进程</li>
+<li>SCHED_OTHER 普通的分时进程</li>
+<li>SCHED_YIELD 当进程调用sched_yield()系统调用时，这个标志被设置。调度程序就把进程描述符放在运行队列的尾端。当内核在执行一个较长且不紧急的任务时，又希望给其他进程机会，就会设置这个标志，并调用schedule()</li>
+</ul>
+</li>
+<li>rt_priority 实时进程的静态优先级 普通进程用不到</li>
+<li>priority 进程的基本时间片 又称为基本优先级</li>
+<li>counter 当前时间片用完之前剩余的CPU时间节拍 在update_process_times()函数每个节拍都会将当前进程的counter-1</li>
+</ul>
+<p>以上参数中，priority与counter对于普通进程而言决定了进程的分时与动态优先级，对于SCHED_RR实时进程只用来分时，对于SCHED_FIFO实时进程用不到。</p>
+<h5 id="多级反馈队列"><a href="#多级反馈队列" class="headerlink" title="多级反馈队列"></a>多级反馈队列</h5><p>一个进程需要执行100个时间片，如果采用时间片轮转，那么需要交换100次。</p>
+<p>多级队列为这种需要连续执行多个时间片的进程考虑，里面设置了多个队列，每个队列对应了线程能执行的时间片的长短，例如分为1、2、4、8…等时间片，第一个队列入cpu执行，如果没执行完会进入第二个时间片长一点的队列，依次类推。</p>
+<p>最上面的时间片最短的优先级最高，只有上一个队列没有进程在排队，才会执行后面的队列。</p>
+<h4 id="批处理进程"><a href="#批处理进程" class="headerlink" title="批处理进程:"></a><strong>批处理进程</strong>:</h4><p>经常后台运行，不必有很快的响应,保证吞吐量和周转时间。</p>
+<h5 id="先来先服务-FCFS"><a href="#先来先服务-FCFS" class="headerlink" title="先来先服务 FCFS"></a>先来先服务 FCFS</h5><p>非抢占式的调度算法，有利于长作业，但不利于短作业，短作业必须长时间等待前面的长作业执行完。</p>
+<h5 id="短作业优先-SJF"><a href="#短作业优先-SJF" class="headerlink" title="短作业优先 SJF"></a>短作业优先 SJF</h5><p>非抢占式的调度算法，保证运行时间短的作业优先运行，一直有短作业到来的话，有可能使长作业饿死。</p>
+<h5 id="最短剩余时间优先-SRTN"><a href="#最短剩余时间优先-SRTN" class="headerlink" title="最短剩余时间优先 SRTN"></a>最短剩余时间优先 SRTN</h5><p>短作业优先的抢占式算法，按剩余运行时间的顺序进行调度，当新的作业到来，其整个运行时间比当前进程剩余时间要短，则挂起当前进程，运行新来的进程。</p>
+<h4 id="实时进程"><a href="#实时进程" class="headerlink" title="实时进程:"></a><strong>实时进程</strong>:</h4><p>有很强大的调度需要，绝不会被低优先级进程阻塞，必须要有很短的响应时间。<br>实时系统分为硬实时和软实时，前者必须满足绝对的截止时间，后者可以容忍一定的超时。</p>
+<h3 id="进程同步"><a href="#进程同步" class="headerlink" title="进程同步"></a><strong>进程同步</strong></h3><h4 id="临界区"><a href="#临界区" class="headerlink" title="临界区"></a>临界区</h4><p>对临界资源(临界资源指的是一次仅允许一个进程使用的资源，硬件如打印机、磁带机，软件如消息队列、变量、缓冲区等)进行访问的代码被称为临界区，为了能正常安全地访问临界区资源，每个进程进入临界区之前要进行检查。</p>
+<h4 id="同步与互斥"><a href="#同步与互斥" class="headerlink" title="同步与互斥"></a>同步与互斥</h4><p><strong>同步</strong> :同步指多个进程合作完成某个任务，但是这些进程之间有先后顺序的要求，必须按照一定的先后顺序执行。<br><strong>互斥</strong> :多个进程同一时刻只能有一个进程进入临界区。</p>
+<h4 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h4><p>信号量是一个整型变量，可以对其进行down与up操作，也就是PV操作</p>
+<p>down，如果信号量大于0，执行-1操作；如果信号量等于0，进程睡眠，等待信号量大于0并且被唤醒。</p>
+<p>up，对信号量执行+1操作，并且唤醒睡眠的进程让其完成down操作。</p>
+<p>以上两个操作必须是原语，在linux中通常会提前关中断，执行完以后开中断</p>
+<h4 id="管程"><a href="#管程" class="headerlink" title="管程"></a>管程</h4><p>由于信号量的机制，PV操作成对出现，但是位置分散，而且使用不当会造成死锁，因此提出了管程的机制。<br>管程的特点就是某个时刻只能有一个进程/线程使用管程。而且在不满足某个条件变量的时候能自我阻塞退出管程等待唤醒，等待其他进程/线程获得管程执行后唤醒其他进程/线程。</p>
+<blockquote>
+<p>所以在java中synchronized关键与Lock锁都实现了类似管程的功能。<br>简单记录下synchronized的管程理解。<br><strong>监视者对象</strong>:Monitor Object负责公共的接口方法，java中的Object就是监视者对象。<br><strong>同步块</strong>:在获得了监视者对象以后，才能执行这块代码，保证了同一时刻只有一个线程执行。<br><strong>监视锁</strong>:Monitor Lock 每个监视者对象都会有一把监视锁。<br><strong>监控条件</strong>:Monitor Condition 根据是否获得锁以及是否满足监控条件来决定阻塞还是唤醒进程/线程</p>
+</blockquote>
+<h4 id="同步问题的sail实现"><a href="#同步问题的sail实现" class="headerlink" title="同步问题的sail实现"></a>同步问题的sail实现</h4><h5 id="生产者消费组队列"><a href="#生产者消费组队列" class="headerlink" title="生产者消费组队列"></a>生产者消费组队列</h5><h5 id="哲学家就餐问题"><a href="#哲学家就餐问题" class="headerlink" title="哲学家就餐问题"></a>哲学家就餐问题</h5><h5 id="读者-写者问题"><a href="#读者-写者问题" class="headerlink" title="读者-写者问题"></a>读者-写者问题</h5><h3 id="进程通信"><a href="#进程通信" class="headerlink" title="进程通信"></a><strong>进程通信</strong></h3><p>为了能达到进程同步的目的，需要让进程间进行通信，传输一些同步必须的数据。</p>
+<h4 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h4><p>管道是一个固定大小的缓冲区，只支持半双工通信，只能在父子进程和兄弟进程间使用。</p>
+<p>可以c++里面通过调用pipe函数创建，fd[0]用于读，fd[1]用于写。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pipe</span><span class="params">(<span class="type">int</span> fd[<span class="number">2</span>])</span></span>;</span><br></pre></td></tr></table></figure>
+<h4 id="命名管道"><a href="#命名管道" class="headerlink" title="命名管道"></a>命名管道</h4><p>与管道相同，只是去除了只能父子进程、兄弟进程通信的限制。</p>
+<p>借助c++的mkfifo函数来创建。管道实际是一个file结构和一个VFS索引，也就是一个虚拟的文件。常用于客户进程与服务端进程间的通信，客户进程写完了以后，服务进程去读，服务进程写完了以后，客户进程去读。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">mkfifo</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *path, <span class="type">mode_t</span> mode)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">mkfifoat</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">char</span> *path, <span class="type">mode_t</span> mode)</span></span>;</span><br></pre></td></tr></table></figure>
+<h4 id="信号signal"><a href="#信号signal" class="headerlink" title="信号signal"></a>信号signal</h4><p>信号具有平台相关性，不同平台下能使用的信号种类不同也十分有限，<strong>用于通知进程某事件的发生</strong>。</p>
+<h4 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h4><p>消息队列独立于进程存在，不需要进程维护管理。<br>消息队列提供了同步阻塞的方法，不许进程自己提供。<br>读进程能有选择地接收不同类型的消息。</p>
+<h4 id="信号量-1"><a href="#信号量-1" class="headerlink" title="信号量"></a>信号量</h4><p>是一个计数器，也能称为互斥量，能控制进程同步的访问共享资源。</p>
+<h4 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h4><p>允许多个进程共享一片存储区域，因为数据不需要在进程间复制效率很高，但是对共享数据访问的话要使用使用同步机制保证数据安全。</p>
+<h4 id="套接字"><a href="#套接字" class="headerlink" title="套接字"></a>套接字</h4><p>指定ip与端口能实现相同机器或者不同机器间的通信。</p>
+<!-- ## 操作系统的死锁问题
+### 发生死锁的必要条件
+根据死锁可以推出以下四种情况：
+- 互斥：每个资源要么已经分配给了一个进程，要么就是可用的。
+- 占有和等待：已经得到了某个资源的进程可以再请求新的资源。
+- 不可抢占：已经分配给一个进程的资源不能强制性地被抢占，它只能被占有它的进程显式地释放。
+- 环路等待：有两个或者两个以上的进程组成一条环路，该环路中的每个进程都在等待下一个进程所占有的资源。
+
+### 处理方法
+
+#### 死锁检测与恢复
+
+
+#### 死锁预防
+#### 死锁避免 -->
+<h3 id="死锁问题"><a href="#死锁问题" class="headerlink" title="死锁问题"></a>死锁问题</h3><p>死锁的概念：在两个或多个并发进程中，如果每个进程持有某种资源而又都等待别的进程释放它或它们现在保持着的资源，在未改变这种状态之前都不能向前推进，称这一组进程产生了死锁。</p>
+<p>通俗地讲，就是两个或多个进程互相持有资源并且等待对方持有的资源，每个进程都不愿意放弃自己的资源，导致没有进程可以继续执行。  </p>
+<p>（1）系统资源不足；（2）进程推进顺序非法。</p>
+<p>　　产生死锁的必要条件：</p>
+<p>　　（1）互斥（mutualexclusion），一个资源每次只能被一个进程使用；</p>
+<p>　　（2）不可抢占（nopreemption），进程已获得的资源，在未使用完之前，不能强行剥夺；</p>
+<p>　　（3）占有并等待（hold andwait），一个进程因请求资源而阻塞时，对已获得的资源保持不放；</p>
+<p>　　（4）环形等待（circularwait），若干进程之间形成一种首尾相接的循环等待资源关系。</p>
+<p>　　这四个条件是死锁的必要条件，只要系统发生死锁，这些条件必然成立，而只要上述条件之一不满足，就不会发生死锁。</p>
+<p>　　死锁的解除与预防：理解了死锁的原因，尤其是产生死锁的四个必要条件，就可以最大可能地避免、预防和解除死锁。所以，在系统设计、进程调度等方面注意如何不让这四个必要条件成立，如何确定资源的合理分配算法，避免进程永久占据系统资源。此外，也要防止进程在处于等待状态的情况下占用资源。因此，对资源 的分配要给予合理的规划。</p>
+<h4 id="死锁的处理策略："><a href="#死锁的处理策略：" class="headerlink" title="死锁的处理策略："></a>死锁的处理策略：</h4><h5 id="鸵鸟策略"><a href="#鸵鸟策略" class="headerlink" title="鸵鸟策略"></a>鸵鸟策略</h5><p>等待死锁发生以后再去解决</p>
+<h5 id="预防策略"><a href="#预防策略" class="headerlink" title="预防策略"></a>预防策略</h5><p>破坏4个必要条件中的一个，就不会发生死锁</p>
+<ul>
+<li>互斥条件不能被破坏，如果资源共享可以破坏，问题是资源不能共享，如果共享会造成数据不一致的问题。</li>
+<li>破坏其他三个都可以</li>
+</ul>
+<h5 id="避免策略"><a href="#避免策略" class="headerlink" title="避免策略"></a>避免策略</h5><p>避免死锁是尽量不破坏四个必要条件，在运行过程中来避免死锁发生。<br>、检测与恢复策略。</p>
+<h5 id="银行家算法"><a href="#银行家算法" class="headerlink" title="银行家算法"></a>银行家算法</h5><p>通过有效分配资源来避免死锁</p>
+<h5 id="常用避免死锁的方法"><a href="#常用避免死锁的方法" class="headerlink" title="常用避免死锁的方法"></a>常用避免死锁的方法</h5><ul>
+<li><p>顺序加锁</p>
+</li>
+<li><p>加锁限时</p>
+<ul>
+<li>一段时间没获取到资源就放弃获取锁，同时释放自己的资源</li>
+</ul>
+</li>
+<li><p>解除死锁</p>
+<ul>
+<li>指一旦检测到死锁就剥夺某个进程占用的资源或者让进程回退</li>
+</ul>
+</li>
+</ul>
+<h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><h3 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h3><p>虚拟内存的目的是为了让物理内存扩充成更大的逻辑内存，从而让程序获得更多的可用空间。</p>
+<p>操作系统将内存抽象为地址空间。每个程序拥有自己的地址空间，地址空间被分割成多个块，每一块被称为一页，这些页在使用的时候会被映射到实际的物理内存（可以不连续），不需要所有页都必须在物理内存中，如果使用到一页不在物理内存中，则会引发缺页异常，由硬件重新分配缺失的物理内存，并重新执行。</p>
+<p>因此，虚拟内存技术保证了程序运行时不需要将虚拟地址每一页都映射到物理内存，仅仅只是用多少映射多少，所以使得有限的物理内存运行大程序成为可能。</p>
+<h3 id="分页系统地址映射"><a href="#分页系统地址映射" class="headerlink" title="分页系统地址映射"></a>分页系统地址映射</h3><p>内存管理单元（MMU）管理着虚拟地址（线性地址）和物理内存的转换，其中页表（Page table）存储着页（虚拟地址空间）和页框（物理内存地址）的映射关系。</p>
+<blockquote>
+<p>对于linux而言，内存映射主要靠的页式内存管理机制，页机制是现代CPU都具备的，而段式内存管理是intel86系统架构独有的概念。linux中为了保证兼顾intel86平台先分段再分页的规则，使虚拟地址具有了相同的段基址 【0(段基址):偏移量(通过段基址+段内偏移量得到的是线性地址)】（这个 段基址:偏移量 的地址组合出现在段式内存管理里面，称为逻辑地址），所以实际上linux中的逻辑地址与线性地址是一致的。</p>
+</blockquote>
+<p>了解了各个地址的关系以后，研究一下页式管理的虚拟地址的构成。</p>
+<p>一个虚拟地址可以区分两块:页面号和页面内偏移量。<br>对于一个32位linux系统，其页框大小为4kb，那么使用2^12表示偏移量即可全部寻址，高位的20位均可以表示页面号，根据操作系统书本的描述，页面号乘以页表项的长度加上页表的起始地址即可获得页表项在页表中的位置，根据这个位置号能获得物理块号的地址。将物理块号作为高位，将页面内偏移作为低位完成拼接即可获得页框的物理地址。</p>
+<h3 id="页面置换算法"><a href="#页面置换算法" class="headerlink" title="页面置换算法"></a>页面置换算法</h3><p>因为内存大小有限，访问的页面可能不在内存中，这时候发生缺页中断而将这一页从磁盘中调入内存。如果页面已经满了，那就必须从内存里选一个页面出来保存新的数据。</p>
+<h4 id="最长时间内不再被访问-OPT"><a href="#最长时间内不再被访问-OPT" class="headerlink" title="最长时间内不再被访问 OPT"></a>最长时间内不再被访问 OPT</h4><p>理论上的最优算法，所换出的页面是最长时间内不再被访问，但是因为无法知道一个页面的多长时间内不会再被访问。可以保证最低的缺页率。</p>
+<h4 id="最久未使用LRU"><a href="#最久未使用LRU" class="headerlink" title="最久未使用LRU"></a>最久未使用LRU</h4><p>无法知道未来使用内存的情况，但是可以根据过去使用内存的情况来替换，最久没有使用过的页面可以替换掉。</p>
+<h4 id="最近未使用NRU"><a href="#最近未使用NRU" class="headerlink" title="最近未使用NRU"></a>最近未使用NRU</h4><p>每个页面有两个状态:R与M ，当页面被访问时设置R=1，当页面被修改时设置M=1，R会定时被清零。<br>将页面分为以下四类:</p>
+<ul>
+<li>R=0,M=0</li>
+<li>R=0,M=1</li>
+<li>R=1,M=0</li>
+<li>R=1,M=1<br>NRU 优先替换出已经被修改的脏页面（R=0,M=1），而不是频繁访问的干净页面（R=1,M=0）。</li>
+</ul>
+<h4 id="先进先出FIFO"><a href="#先进先出FIFO" class="headerlink" title="先进先出FIFO"></a>先进先出FIFO</h4><p>无法保证页面的命中率，随缘。</p>
+<h4 id="第二次机会算法"><a href="#第二次机会算法" class="headerlink" title="第二次机会算法"></a>第二次机会算法</h4><p>将页面构造成一个FIFO队列，每个页面有一个标志位R，被访问或者被修改的将R=1,队列满的时候判断即将出队的页面R如果等于0，就直接让他出队，如果R==1，则将R置为0并把这个页面重新入队。</p>
+<h4 id="时钟"><a href="#时钟" class="headerlink" title="时钟"></a>时钟</h4><p>第二次机会算法需要在队列中移动页面，影响效率。时钟算法不用移动页面节点，将页面构建成一个环，用一个指针指向最先入队的节点。</p>
+<h3 id="分段"><a href="#分段" class="headerlink" title="分段"></a>分段</h3><p>为了解决 内存地址空间不隔离，内存地址不固定 这俩问题，引入了分段的概念.<br>首先，分段在程序编译期间会建立多个表。</p>
+<blockquote>
+<p>在编译过程中会建立许多的表，来确定代码和变量的虚拟地址：<br>1.被保存起来供打印清单的源程序正文；<br>2.符号表，包含变量的名字和属性；<br>3.包含所有用到的整形和浮点型数据的表；<br>4.语法分析树，包括程序语法分析的结果；<br>5.编译器内部过程调用的堆栈。  </p>
+</blockquote>
+<p>前四个表在编译期会动态增长，如果使用分页地址就会被覆盖。<br>这多张表分成逻辑上的多个段，逻辑上连续的地址空间。   </p>
+<p>如果仅仅使用分段机制管理内存，那么这一张段表就对应一块连续的物理内存地址，逻辑地址的构成是段基址+段内偏移地址，根据段基址计算再到段表去查询获得物理地址的基址加上偏移地址就获得了实际的物理地址。但是在段式管理下，由于分配的内存不是定长的，时间长了，就会碎片化，导致有足够的内存空间但是无法分配给某个进程。</p>
+<h3 id="段页式"><a href="#段页式" class="headerlink" title="段页式"></a>段页式</h3><p>首先，分页与分段都是为了更好的使用内存资源。</p>
+<p>段页式就解决了 内存地址空间不隔离，内存地址不固定，内存使用率不高 这仨问题。<br>首先段式管理解决了上面俩问题。</p>
+<p>在段页式机制下面，程序内存地址被分成了多个连续的地址空间的段，在段内又分成了地址空间大小一致一般为4kb的页，解决了地址空间连续，利用率不高的问题。<br>段页式机制下，由段表计算出来的地址被称为线性地址，也就是分页里面的虚拟地址，将这个地址进行拆分，前一部分表示页面号，后一部分表示页面内偏移地址，页面号经过计算到页表中查询获得页的起始地址，加上页面内偏移就能计算得到实际的物理地址。</p>
+<h3 id="分页与分段的比较"><a href="#分页与分段的比较" class="headerlink" title="分页与分段的比较"></a>分页与分段的比较</h3><p>对程序员的透明性：分页透明，但是分段需要程序员显式划分每个段。</p>
+<p>地址空间的维度：分页是一维地址空间，分段是二维的。</p>
+<p>大小是否可以改变：页的大小不可变，段的大小可以动态改变。</p>
+<p>出现的原因：分页主要用于实现虚拟内存，从而获得更大的地址空间；分段主要是为了使程序和数据可以被划分为逻辑上独立的地址空间并且有助于共享和保护。</p>
+<h3 id="2020-8-22-面试-gt-谈一谈分段与分页"><a href="#2020-8-22-面试-gt-谈一谈分段与分页" class="headerlink" title="2020/8/22 面试&gt;谈一谈分段与分页"></a>2020/8/22 面试&gt;谈一谈分段与分页</h3><p>分段与分页的目的都是为了更好的利用内存资源。<br>分段指的是用户进程将自己的内存划分为多个逻辑段，每个段有自己的段号，段内物理地址连续，段间物理地址不连续，通过段表来记录逻辑地址到物理地址的映射关系，（取出逻辑地址的前几位为段号，后几位为段内偏移量，通过段表项起始地址+段号乘以段表项的长度，得到段号对应段表项的地址，然后取出对应段表项的起始物理地址，将起始物理地址+段内偏移量得到物理地址）段式内存管理解决了内存地址不隔离的问题，而且有段表也解决了直接使用物理地址，地址不固定的问题。<br>分页指的是将内存空间划分为固定大小的内存块，32位linux为4kb大小，每个块称为一页，通过页表可以不连续的映射物理内存块，每个页表项就是一个4kb物理内存块的起始地址（通过虚拟地址），并且每块大小相同也不会产生内存碎片。如果仅仅只是分页不分段的话，那内存空间是不隔离的，然后在分页中还有虚拟地址技术，可以分配一段连续的虚拟地址空间但是不映射物理页，当使用到对应的虚拟地址页时，发现缺页的时候才发生中断去分配物理内存页。这种技术可以运行大内存程序。</p>
+<h2 id="磁盘管理"><a href="#磁盘管理" class="headerlink" title="磁盘管理"></a>磁盘管理</h2><h3 id="磁盘性能参数"><a href="#磁盘性能参数" class="headerlink" title="磁盘性能参数"></a>磁盘性能参数</h3><p>寻道时间：磁头定位到磁道所需要的时间</p>
+<p>旋转延迟：磁道定位之后，磁盘控制器开始等待，直到适当的扇区旋转到磁头处的时间。</p>
+<p>存取时间：寻道时间+旋转延迟，即达到读或写的位置所需要的时间。</p>
+<p>传输时间：磁头定位完成，磁头通过下面旋转的扇区，执行读操作或写操作所需要的时间。</p>
+<h3 id="磁盘调度"><a href="#磁盘调度" class="headerlink" title="磁盘调度"></a>磁盘调度</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/tjulym/p/5003655.html">四种磁头调度算法</a></p>
+<h2 id="linux常用指令"><a href="#linux常用指令" class="headerlink" title="linux常用指令"></a>linux常用指令</h2><h3 id="chmod-命令"><a href="#chmod-命令" class="headerlink" title="chmod 命令"></a>chmod 命令</h3><p>示例:chmod ugoa+rwx directory1<br>设置目录的所有人(u)、群组(g)以及其他人(o)以读（r，4 ）、写(w，2)和执行(x，1)的权限 chmod go-rwx directory1 删除群组(g)与其他人(o)对目录的读写执行权限</p>
+<h3 id="jps命令"><a href="#jps命令" class="headerlink" title="jps命令"></a>jps命令</h3><p>jps是jdk提供的一个查看当前java进程的小工具。<br>jps -l 输出完整的包名<br>jps -v 输出jvm的参数</p>
+<h3 id="ps命令"><a href="#ps命令" class="headerlink" title="ps命令"></a>ps命令</h3><p>ps -aux 查看系统所有进程的数据<br>能看到PID进程id、CPU进程占用的cpu、MEM进程占用的物理内存百分比、VSZ进程用掉的虚拟内存、RSS进程占用的固定内存量。</p>
+<p>STAT：该程序目前的状态，主要的状态有：</p>
+<ul>
+<li>R ：该程序目前正在运作，或者是可被运作；</li>
+<li>S ：该程序目前正在睡眠当中 (可说是 idle 状态啦！)，但可被某些讯号(signal) 唤醒。</li>
+<li>T ：该程序目前正在侦测或者是停止了；</li>
+<li>Z ：该程序应该已经终止，但是其父程序却无法正常的终止他，造成 zombie (疆尸) 程序的状态</li>
+</ul>
+<h3 id="top命令"><a href="#top命令" class="headerlink" title="top命令"></a>top命令</h3><ol>
+<li>第一行参数</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>05:43:27</td>
+<td>表示当前时间</td>
+</tr>
+<tr>
+<td>up 4:52</td>
+<td>系统运行时间 格式为时：分</td>
+</tr>
+<tr>
+<td>2 users</td>
+<td>当前登录用户数</td>
+</tr>
+<tr>
+<td>load average: 0.58, 0.41, 0.30</td>
+<td>系统负载，即任务队列的平均长度。 三个数值分别为 过去1分钟、5分钟、15分钟前到现在的平均值。如果这个数除以逻辑CPU的数量，结果高于5的时候就表明系统在超负荷运转了。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>load average 平均负载可以通过uptime或者top查看，如果三个值依次减小，说明系统负载是上升的趋势，通过mpstat查看哪个进程在占用cpu，是使用cpu比较高还是io等待时间比较高。</p>
+</blockquote>
+<ol start="2">
+<li><p>第二行参数 Tasks: 159 total, 1 running, 158 sleeping, 0 stopped, 0 zombie<br>表示进程的数量</p>
+</li>
+<li><p>第三行参数 %Cpu(s): 37.0 us, 3.7 sy, 0.0 ni, 59.3 id, 0.0 wa, 0.0 hi, 0.0 si, 0.0 st<br>表示cpu的信息。 mpstat指令也可单独查看</p>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>37.0 us</td>
+<td>用户空间占用CPU百分比</td>
+</tr>
+<tr>
+<td>3.7 sy</td>
+<td>内核空间占用CPU百分比</td>
+</tr>
+<tr>
+<td>0.0 ni</td>
+<td>用户进程空间内改变过优先级的进程占用CPU百分比</td>
+</tr>
+<tr>
+<td>59.3 id</td>
+<td>空闲CPU百分比</td>
+</tr>
+<tr>
+<td>0.0 wa</td>
+<td>等待输入输出的CPU时间百分比</td>
+</tr>
+<tr>
+<td>0.0 hi</td>
+<td>硬中断（Hardware IRQ）占用CPU的百分比</td>
+</tr>
+<tr>
+<td>0.0 si</td>
+<td>软中断（Software Interrupts）占用CPU的百分比</td>
+</tr>
+</tbody></table>
+<ol start="4">
+<li>第四行参数 KiB Mem: 1530752 total, 1481968 used, 48784 free, 70988 buffers   </li>
+<li>第五行参数 KiB Swap: 3905532 total, 267544 used, 3637988 free. 617312 cached Mem  </li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>KiB Mem: 1530752 total</td>
+<td>物理内存总量</td>
+</tr>
+<tr>
+<td>1481968 used</td>
+<td>使用的物理内存总量</td>
+</tr>
+<tr>
+<td>48784 free</td>
+<td>空闲内存总量</td>
+</tr>
+<tr>
+<td>70988 buffers（buff/cache）</td>
+<td>用作内核缓存的内存量</td>
+</tr>
+<tr>
+<td>KiB Swap: 3905532 total</td>
+<td>交换区总量</td>
+</tr>
+<tr>
+<td>267544 used</td>
+<td>使用的交换区总量</td>
+</tr>
+<tr>
+<td>3637988 free</td>
+<td>空闲交换区总量</td>
+</tr>
+<tr>
+<td>617312 cached Mem</td>
+<td>缓冲的交换区总量。</td>
+</tr>
+<tr>
+<td>3156100 avail Mem</td>
+<td>代表可用于进程下一次分配的物理内存数量</td>
+</tr>
+</tbody></table>
+<p>ps：<br>cat /proc/meminfo 指令查看详细的内存使用情况<br>vmstat 指令 也可查看内存占用情况</p>
+<p>top指令 查看进程的参数<br>    PID：进程的ID<br>　　USER：进程所有者<br>　　PR：进程的优先级别，越小越优先被执行<br>　　NInice：值<br>　　VIRT：进程占用的虚拟内存<br>　　RES：进程占用的物理内存<br>　　SHR：进程使用的共享内存<br>　　S：进程的状态。S表示休眠，R表示正在运行，Z表示僵死状态，N表示该进程优先值为负数<br>　　%CPU：进程占用CPU的使用率<br>　　%MEM：进程使用的物理内存和总内存的百分比<br>　　TIME+：该进程启动后占用的总的CPU时间，即占用CPU使用时间的累加值。<br>　　COMMAND：进程启动命令名称</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/yjclsx/article/details/81508455">top命令</a></p>
+</blockquote>
+<h1 id="netstat"><a href="#netstat" class="headerlink" title="netstat"></a>netstat</h1><p>netstat -apt 查询所有状态的端口（已连接或者监听），并打印进程的pid与进程名</p>
+<h2 id="linux问题"><a href="#linux问题" class="headerlink" title="linux问题"></a>linux问题</h2><h3 id="linux中的cached与buffers"><a href="#linux中的cached与buffers" class="headerlink" title="linux中的cached与buffers"></a>linux中的cached与buffers</h3><p>buffer缓冲区常常是用来将空闲的内存分配出来给块设备做读写缓冲区用的，用来暂存数据<br>cached是作为读取文件系统的cache，读写文件的时候为了提高效率，将文件在内存中进行缓存。</p>
+<h3 id="linux中的虚拟内存与与swap空间"><a href="#linux中的虚拟内存与与swap空间" class="headerlink" title="linux中的虚拟内存与与swap空间"></a>linux中的虚拟内存与与swap空间</h3><p>虚拟内存指的就是linux使用的不存在的空间，这一部分空间物理内存肯定是给不了了，因此linux通过两种方法来进行内存管理，一种是调页算法，即页面替换算法，将容易命中的数据放到物理内存中，还有一种就是交换，即将没有足够空间的进程整个放到磁盘上。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://saaaaaail.github.io/saaaaaail">sail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://saaaaaail.github.io/saaaaaail/2020/07/02/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/">https://saaaaaail.github.io/saaaaaail/2020/07/02/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://saaaaaail.github.io/saaaaaail" target="_blank">sail home</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><a class="post-meta__tags" href="/tags/linux/">linux</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2020/07/02/ReentrantLock%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/" title="ReentrantLock原理详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">ReentrantLock原理详解</div></div><div class="info-2"><div class="info-item-1">ReentrantLock原理详解 提问：介绍一下ReentrantLock？  基础方法1Lock lock = new ReentrantLock();  lock()/unlock()  tryLock()1可以进行加锁尝试 ，如果一段时间没有获得锁，就停止尝试获得锁返回false lockInterruptibly() 1通过这个方式加锁的，可以被线程的interrupt()方法打断 公平锁  1Lock lock = new ReentrantLock(true);  提问：Lock公平锁为什么不能保证绝对的公平？  源码解读ps:以下是ReentrantLock源码分析，AQS原理不再赘述噢，AQS源码解读-&gt; AQS源码解读 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586public...</div></div></div></a><a class="pagination-related" href="/2020/07/04/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/" title="线程池原理详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">线程池原理详解</div></div><div class="info-2"><div class="info-item-1">线程池的原理详解理解线程池是由任务队列和工作线程组成，可以重用线程来避免线程创建的开销，在任务过多时，通过排队来避免创建过多的线程，来减少系统资源的消耗和竞争，确保任务有序完成。 线程池的构成ExecutorService是真正的线程池接口。 Executors是java提供的生产线程池的静态工厂，生产各种线程池实例。 Executor是线程池的顶级接口，用来执行线程，通过execute方法。 AbstractExecutorService实现了ExecutorService接口的部分方法，为抽象类。 ThreadPoolExecutor继承了AbstractExecutorService，实现了ExecutorService的接口。 ThreadPoolExecutor12345678910111213141516171819202122232425//ThreadPoolExecutor参数最全的一个构造类，来一一记录public ThreadPoolExecutor(int corePoolSize,                          int...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">sail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">48</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#linux%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">linux操作系统原理详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">进程管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="toc-number">1.1.1.</span> <span class="toc-text">进程描述符</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%A0%86%E6%A0%88"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">进程的堆栈</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81"><span class="toc-number">1.1.2.</span> <span class="toc-text">进程状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E5%88%87%E6%8D%A2"><span class="toc-number">1.1.3.</span> <span class="toc-text">进程切换</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">进程上下文</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E6%A0%88%E5%88%87%E6%8D%A2%E5%88%B0%E5%86%85%E6%A0%B8%E6%A0%88"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">用户栈切换到内核栈</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E5%88%87%E6%8D%A2-1"><span class="toc-number">1.1.3.3.</span> <span class="toc-text">进程切换</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A1%AC%E4%B8%AD%E6%96%AD%E4%B8%8E%E8%BD%AF%E4%B8%AD%E6%96%AD"><span class="toc-number">1.1.3.4.</span> <span class="toc-text">硬中断与软中断</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E5%88%9B%E5%BB%BA"><span class="toc-number">1.1.4.</span> <span class="toc-text">进程创建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E7%BA%BF%E7%A8%8B"><span class="toc-number">1.1.5.</span> <span class="toc-text">内核线程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%92%A4%E9%94%80%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.1.6.</span> <span class="toc-text">撤销进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6"><span class="toc-number">1.1.7.</span> <span class="toc-text">进程调度</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%A4%E4%BA%92%E5%BC%8F%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.1.7.1.</span> <span class="toc-text">交互式进程:</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E7%89%87%E8%BD%AE%E8%BD%AC"><span class="toc-number">1.1.7.1.1.</span> <span class="toc-text">时间片轮转</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E4%BC%98%E5%85%88%E7%BA%A7%E8%B0%83%E5%BA%A6"><span class="toc-number">1.1.7.1.2.</span> <span class="toc-text">动态优先级调度</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A4%9A%E7%BA%A7%E5%8F%8D%E9%A6%88%E9%98%9F%E5%88%97"><span class="toc-number">1.1.7.1.3.</span> <span class="toc-text">多级反馈队列</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%B9%E5%A4%84%E7%90%86%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.1.7.2.</span> <span class="toc-text">批处理进程:</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%88%E6%9D%A5%E5%85%88%E6%9C%8D%E5%8A%A1-FCFS"><span class="toc-number">1.1.7.2.1.</span> <span class="toc-text">先来先服务 FCFS</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%9F%AD%E4%BD%9C%E4%B8%9A%E4%BC%98%E5%85%88-SJF"><span class="toc-number">1.1.7.2.2.</span> <span class="toc-text">短作业优先 SJF</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9C%80%E7%9F%AD%E5%89%A9%E4%BD%99%E6%97%B6%E9%97%B4%E4%BC%98%E5%85%88-SRTN"><span class="toc-number">1.1.7.2.3.</span> <span class="toc-text">最短剩余时间优先 SRTN</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E6%97%B6%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.1.7.3.</span> <span class="toc-text">实时进程:</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5"><span class="toc-number">1.1.8.</span> <span class="toc-text">进程同步</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%B4%E7%95%8C%E5%8C%BA"><span class="toc-number">1.1.8.1.</span> <span class="toc-text">临界区</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8C%E6%AD%A5%E4%B8%8E%E4%BA%92%E6%96%A5"><span class="toc-number">1.1.8.2.</span> <span class="toc-text">同步与互斥</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F"><span class="toc-number">1.1.8.3.</span> <span class="toc-text">信号量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%A1%E7%A8%8B"><span class="toc-number">1.1.8.4.</span> <span class="toc-text">管程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8C%E6%AD%A5%E9%97%AE%E9%A2%98%E7%9A%84sail%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.1.8.5.</span> <span class="toc-text">同步问题的sail实现</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E7%BB%84%E9%98%9F%E5%88%97"><span class="toc-number">1.1.8.5.1.</span> <span class="toc-text">生产者消费组队列</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%93%B2%E5%AD%A6%E5%AE%B6%E5%B0%B1%E9%A4%90%E9%97%AE%E9%A2%98"><span class="toc-number">1.1.8.5.2.</span> <span class="toc-text">哲学家就餐问题</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%AF%BB%E8%80%85-%E5%86%99%E8%80%85%E9%97%AE%E9%A2%98"><span class="toc-number">1.1.8.5.3.</span> <span class="toc-text">读者-写者问题</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E9%80%9A%E4%BF%A1"><span class="toc-number">1.1.9.</span> <span class="toc-text">进程通信</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%A1%E9%81%93"><span class="toc-number">1.1.9.1.</span> <span class="toc-text">管道</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%91%BD%E5%90%8D%E7%AE%A1%E9%81%93"><span class="toc-number">1.1.9.2.</span> <span class="toc-text">命名管道</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E5%8F%B7signal"><span class="toc-number">1.1.9.3.</span> <span class="toc-text">信号signal</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97"><span class="toc-number">1.1.9.4.</span> <span class="toc-text">消息队列</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F-1"><span class="toc-number">1.1.9.5.</span> <span class="toc-text">信号量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98"><span class="toc-number">1.1.9.6.</span> <span class="toc-text">共享内存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A5%97%E6%8E%A5%E5%AD%97"><span class="toc-number">1.1.9.7.</span> <span class="toc-text">套接字</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98"><span class="toc-number">1.1.10.</span> <span class="toc-text">死锁问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%BB%E9%94%81%E7%9A%84%E5%A4%84%E7%90%86%E7%AD%96%E7%95%A5%EF%BC%9A"><span class="toc-number">1.1.10.1.</span> <span class="toc-text">死锁的处理策略：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%B8%B5%E9%B8%9F%E7%AD%96%E7%95%A5"><span class="toc-number">1.1.10.1.1.</span> <span class="toc-text">鸵鸟策略</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%A2%84%E9%98%B2%E7%AD%96%E7%95%A5"><span class="toc-number">1.1.10.1.2.</span> <span class="toc-text">预防策略</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E7%AD%96%E7%95%A5"><span class="toc-number">1.1.10.1.3.</span> <span class="toc-text">避免策略</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%93%B6%E8%A1%8C%E5%AE%B6%E7%AE%97%E6%B3%95"><span class="toc-number">1.1.10.1.4.</span> <span class="toc-text">银行家算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E9%81%BF%E5%85%8D%E6%AD%BB%E9%94%81%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-number">1.1.10.1.5.</span> <span class="toc-text">常用避免死锁的方法</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-number">1.2.</span> <span class="toc-text">内存管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98"><span class="toc-number">1.2.1.</span> <span class="toc-text">虚拟内存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E9%A1%B5%E7%B3%BB%E7%BB%9F%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84"><span class="toc-number">1.2.2.</span> <span class="toc-text">分页系统地址映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="toc-number">1.2.3.</span> <span class="toc-text">页面置换算法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E9%95%BF%E6%97%B6%E9%97%B4%E5%86%85%E4%B8%8D%E5%86%8D%E8%A2%AB%E8%AE%BF%E9%97%AE-OPT"><span class="toc-number">1.2.3.1.</span> <span class="toc-text">最长时间内不再被访问 OPT</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E4%B9%85%E6%9C%AA%E4%BD%BF%E7%94%A8LRU"><span class="toc-number">1.2.3.2.</span> <span class="toc-text">最久未使用LRU</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E8%BF%91%E6%9C%AA%E4%BD%BF%E7%94%A8NRU"><span class="toc-number">1.2.3.3.</span> <span class="toc-text">最近未使用NRU</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%88%E8%BF%9B%E5%85%88%E5%87%BAFIFO"><span class="toc-number">1.2.3.4.</span> <span class="toc-text">先进先出FIFO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AC%A1%E6%9C%BA%E4%BC%9A%E7%AE%97%E6%B3%95"><span class="toc-number">1.2.3.5.</span> <span class="toc-text">第二次机会算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%B6%E9%92%9F"><span class="toc-number">1.2.3.6.</span> <span class="toc-text">时钟</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%AE%B5"><span class="toc-number">1.2.4.</span> <span class="toc-text">分段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AE%B5%E9%A1%B5%E5%BC%8F"><span class="toc-number">1.2.5.</span> <span class="toc-text">段页式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E9%A1%B5%E4%B8%8E%E5%88%86%E6%AE%B5%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-number">1.2.6.</span> <span class="toc-text">分页与分段的比较</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2020-8-22-%E9%9D%A2%E8%AF%95-gt-%E8%B0%88%E4%B8%80%E8%B0%88%E5%88%86%E6%AE%B5%E4%B8%8E%E5%88%86%E9%A1%B5"><span class="toc-number">1.2.7.</span> <span class="toc-text">2020&#x2F;8&#x2F;22 面试&gt;谈一谈分段与分页</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A3%81%E7%9B%98%E7%AE%A1%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">磁盘管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A3%81%E7%9B%98%E6%80%A7%E8%83%BD%E5%8F%82%E6%95%B0"><span class="toc-number">1.3.1.</span> <span class="toc-text">磁盘性能参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A3%81%E7%9B%98%E8%B0%83%E5%BA%A6"><span class="toc-number">1.3.2.</span> <span class="toc-text">磁盘调度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#linux%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4"><span class="toc-number">1.4.</span> <span class="toc-text">linux常用指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#chmod-%E5%91%BD%E4%BB%A4"><span class="toc-number">1.4.1.</span> <span class="toc-text">chmod 命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#jps%E5%91%BD%E4%BB%A4"><span class="toc-number">1.4.2.</span> <span class="toc-text">jps命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ps%E5%91%BD%E4%BB%A4"><span class="toc-number">1.4.3.</span> <span class="toc-text">ps命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#top%E5%91%BD%E4%BB%A4"><span class="toc-number">1.4.4.</span> <span class="toc-text">top命令</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#netstat"><span class="toc-number">2.</span> <span class="toc-text">netstat</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#linux%E9%97%AE%E9%A2%98"><span class="toc-number">2.1.</span> <span class="toc-text">linux问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#linux%E4%B8%AD%E7%9A%84cached%E4%B8%8Ebuffers"><span class="toc-number">2.1.1.</span> <span class="toc-text">linux中的cached与buffers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#linux%E4%B8%AD%E7%9A%84%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E4%B8%8E%E4%B8%8Eswap%E7%A9%BA%E9%97%B4"><span class="toc-number">2.1.2.</span> <span class="toc-text">linux中的虚拟内存与与swap空间</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/16/hello-world/" title="Hello World">Hello World</a><time datetime="2025-03-16T04:21:42.245Z" title="发表于 2025-03-16 12:21:42">2025-03-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/12/01/%E9%98%BF%E9%87%8C%E7%9A%84maven%E4%BE%9D%E8%B5%96http%E5%A4%B1%E6%95%88%E9%97%AE%E9%A2%98/" title="阿里的maven依赖http失效问题">阿里的maven依赖http失效问题</a><time datetime="2020-12-01T09:31:49.000Z" title="发表于 2020-12-01 17:31:49">2020-12-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/11/04/Tomcat%E5%AE%9A%E6%97%B6%E6%A3%80%E6%9F%A5%E6%9C%8D%E5%8A%A1%E7%8A%B6%E6%80%81%E7%9A%84%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC/" title="Tomcat定时检查服务状态的启动脚本">Tomcat定时检查服务状态的启动脚本</a><time datetime="2020-11-04T03:29:25.000Z" title="发表于 2020-11-04 11:29:25">2020-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/" title="RocketMQ详解">RocketMQ详解</a><time datetime="2020-09-11T07:28:43.000Z" title="发表于 2020-09-11 15:28:43">2020-09-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/04/zookeeper/" title="zookeeper">zookeeper</a><time datetime="2020-09-04T06:58:11.000Z" title="发表于 2020-09-04 14:58:11">2020-09-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By sail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 5.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>RocketMQ详解 | sail home</title><meta name="author" content="sail"><meta name="copyright" content="sail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="简单介绍 能够保证严格的消息顺序 提供丰富的消息拉取模式 高效的订阅者水平扩展能力 实时的消息订阅机制 支持事务消息 亿级消息堆积能力  启动在conf文件夹下包含三个默认的  2m-2s-async ：2主2从 异步传输数据 2m-2s-sync  ：2主2从 同步传输数据 2m-noslave  ：2主 没有从节点  修改bin目录下的runbroker.sh文件里的jvm启动参数  设置xm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ详解">
+<meta property="og:url" content="https://saaaaaail.github.io/saaaaaail/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="sail home">
+<meta property="og:description" content="简单介绍 能够保证严格的消息顺序 提供丰富的消息拉取模式 高效的订阅者水平扩展能力 实时的消息订阅机制 支持事务消息 亿级消息堆积能力  启动在conf文件夹下包含三个默认的  2m-2s-async ：2主2从 异步传输数据 2m-2s-sync  ：2主2从 同步传输数据 2m-noslave  ：2主 没有从节点  修改bin目录下的runbroker.sh文件里的jvm启动参数  设置xm">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png">
+<meta property="article:published_time" content="2020-09-11T07:28:43.000Z">
+<meta property="article:modified_time" content="2025-03-16T04:21:42.244Z">
+<meta property="article:author" content="sail">
+<meta property="article:tag" content="RocketMQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "RocketMQ详解",
+  "url": "https://saaaaaail.github.io/saaaaaail/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/",
+  "image": "https://saaaaaail.github.io/saaaaaail/img/butterfly-icon.png",
+  "datePublished": "2020-09-11T07:28:43.000Z",
+  "dateModified": "2025-03-16T04:21:42.244Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "sail",
+      "url": "https://saaaaaail.github.io/saaaaaail/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://saaaaaail.github.io/saaaaaail/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'RocketMQ详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 5.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">sail home</span></a><a class="nav-page-title" href="/"><span class="site-name">RocketMQ详解</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">RocketMQ详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-11T07:28:43.000Z" title="发表于 2020-09-11 15:28:43">2020-09-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-16T04:21:42.244Z" title="更新于 2025-03-16 12:21:42">2025-03-16</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="简单介绍"><a href="#简单介绍" class="headerlink" title="简单介绍"></a>简单介绍</h1><ol>
+<li>能够保证严格的消息顺序</li>
+<li>提供丰富的消息拉取模式</li>
+<li>高效的订阅者水平扩展能力</li>
+<li>实时的消息订阅机制</li>
+<li>支持事务消息</li>
+<li>亿级消息堆积能力</li>
+</ol>
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h1><p>在conf文件夹下包含三个默认的</p>
+<ul>
+<li>2m-2s-async ：2主2从 异步传输数据</li>
+<li>2m-2s-sync  ：2主2从 同步传输数据</li>
+<li>2m-noslave  ：2主 没有从节点</li>
+</ul>
+<p>修改bin目录下的runbroker.sh文件里的jvm启动参数</p>
+<ul>
+<li>设置xmx最大堆内存大小、xms最小堆内存大小、xmn新生代大小、xss单个虚拟机栈大小</li>
+</ul>
+<p>修改bin目录下的runserver.sh文件里的jvm启动参数</p>
+<ul>
+<li>设置xmx最大堆内存大小、xms最小堆内存大小、xmn新生代大小、xss单个虚拟机栈大小、-XX:MetaspaceSize=128M、-XX:MaxMetaspaceSize=320M为合适的大小</li>
+</ul>
+<p>先启动nameServer、然后启动broker    </p>
+<h1 id="消息"><a href="#消息" class="headerlink" title="消息"></a>消息</h1><ul>
+<li>普通消息</li>
+<li>顺序消息 - 能实现有序的顺序消费</li>
+<li>事务消息 - 能解决分布式事务实现最终一致性问题</li>
+</ul>
+<p>两种消费模式：</p>
+<ul>
+<li>DefaultMQPushConsumer</li>
+<li>DefaullMQPullConsumer</li>
+</ul>
+<h1 id="消息生产者"><a href="#消息生产者" class="headerlink" title="消息生产者"></a>消息生产者</h1><p>DefaultMQProducer 生产者对象  </p>
+<ul>
+<li>producerGroup: 生产者组</li>
+<li>nameServer</li>
+</ul>
+<p>Message 消息对象  </p>
+<ul>
+<li>topic: 主题，用来与消费者消费对应的数据</li>
+<li>tags: 标记，用来与消费者对应，过滤主题里的数据</li>
+<li>keys: 消息的唯一值</li>
+<li>消息数据体</li>
+</ul>
+<h1 id="消息消费者"><a href="#消息消费者" class="headerlink" title="消息消费者"></a>消息消费者</h1><p>DefaultMQPushConsumer 消费者对象，push模式  </p>
+<ul>
+<li>consumerGroup: 消费者组</li>
+<li>nameServer</li>
+</ul>
+<p>配置消费什么对象  </p>
+<ul>
+<li>topic: 指定消费的主题</li>
+<li>tags: 过滤规则</li>
+</ul>
+<p>消息监听  MessageListenerConcurrently监听器<br>能获得批量拉取的消息list，能设置一次拉取的消息数量上限，对批量消息list迭代消费掉。</p>
+<ul>
+<li>消息返回消费成功标志位。</li>
+<li>消息消费异常则返回消息重试标志位。</li>
+</ul>
+<h1 id="顺序消息"><a href="#顺序消息" class="headerlink" title="顺序消息"></a>顺序消息</h1><p>由于生产者组向broker发送消息，消息会负载到不同的队列中，很难保证顺序消费。</p>
+<p>因此要保证顺序消费：</p>
+<ul>
+<li>消息被发送时保持顺序</li>
+<li>消息被存储时保持和发送的顺序一致</li>
+<li>消息被消费时保持和发送的顺序一致</li>
+</ul>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><ul>
+<li>生产者发送消息选择一个topic队列，然后将顺序消息信息发往这一个队列。 </li>
+<li>消费者对于顺序消息要保证有序消费，那么就修改普通消息的MessageListenerConcurrently监听器为MessageListenerOrderly监听器进行有序消费。</li>
+</ul>
+<h1 id="事务消息"><a href="#事务消息" class="headerlink" title="事务消息"></a>事务消息</h1><ol>
+<li>生产者组首先向broker发送预提交消息到HalfTopic</li>
+<li>预提交消息发送成功以后回调生产者组的执行本地事务的方法</li>
+<li>判断生产者组本地事务是否执行成功，成功则看第4步，失败看第7步</li>
+<li>将本地执行成功的消息发送到broker的OpTopic </li>
+<li>broker会将OpTopic的数据提交到RealTopic中</li>
+<li>此时消费者端就可以在RealTopic中消费到这个事务消息，并且通过重试机制解决消费端失败的问题。</li>
+<li>如果失败则返回超时或者Unknow状态，由于之前发送了预提交，现在broker想知道进一步的情况，会进行消息回查（会比较HalfTopic与OpTopic里消息的区别确定要进行回查的消息）</li>
+</ol>
+<p>在普通消息的基础上：</p>
+<ul>
+<li>指定消息的事务监听对象TransactionListener，用于执行本地事务与消息回查</li>
+<li>重写上面接口的executeLocalTransaction执行本地事务</li>
+<li>重写上面接口的checkLocalTransaction进行消息回查</li>
+</ul>
+<h2 id="RocketMQ分布式事务流程"><a href="#RocketMQ分布式事务流程" class="headerlink" title="RocketMQ分布式事务流程"></a>RocketMQ分布式事务流程</h2><ul>
+<li>第一阶段. 预提交消息，提交到HalfTopic，broker会拿到事务消息的id值。</li>
+<li>第二阶段. broker根据事务id回调执行本地事务，如果执行成功会Commit将事务消息写到OpTopic，执行失败会Rollback清理HalfTopic。</li>
+<li>第三阶段. 如果没有收到之前的预提交的事务消息的确认会回调检查事务状态，返回给broker去做Commit或Rollback</li>
+</ul>
+<h1 id="广播消息"><a href="#广播消息" class="headerlink" title="广播消息"></a>广播消息</h1><p>在默认的集群消息模式时，同一个消费组中只有一个消费组消费消息。</p>
+<p>在广播模式中同一个消费组中的所有消费者都能消费同一个消息。</p>
+<h1 id="高级功能"><a href="#高级功能" class="headerlink" title="高级功能"></a>高级功能</h1><h2 id="消息存储和发送"><a href="#消息存储和发送" class="headerlink" title="消息存储和发送"></a>消息存储和发送</h2><p>消息存储采用文件系统的顺序写方式。</p>
+<p>消息发送采用的是零拷贝技术。</p>
+<h2 id="消息存储数据结构"><a href="#消息存储数据结构" class="headerlink" title="消息存储数据结构"></a>消息存储数据结构</h2><p>CommitLog文件夹: 存储消息的元数据，包括topic、queueId、Message，这么一个文件的是顺序写入的，采用了一个ConsumerQueue记录这么1g的文件里面各个消息的索引值，包括最小的消息偏移量，已经消费的消息偏移量，最大的消息偏移量。</p>
+<p>可以通过CommitLog文件生成ConsumerQueue文件。  </p>
+<p>index文件夹: 也是一个索引文件，ConsumerQueue是一个文件，按照消息id的索引值得到偏移量，而index提供了按照消息key、时间戳来查询消息的索引文件。</p>
+<h2 id="刷盘机制"><a href="#刷盘机制" class="headerlink" title="刷盘机制"></a>刷盘机制</h2><p>RocketMQ将消息以文件系统的方式存储到了磁盘上面。有两种写磁盘方式，同步刷盘、异步刷盘。</p>
+<ul>
+<li>同步刷盘: 指的是消息发送到MQ之后，保存到内存里，立即进行磁盘的写入，写入完成以后才会返回该请求写成功的响应。</li>
+<li>异步刷盘: 指消息被保存到内存以后就立即返回了写入成功的响应，当内存的消息数量积累到一定程度才会统一触发写磁盘的操作。</li>
+</ul>
+<p>这两种机制都能通过broker的配置文件进行配置。</p>
+<h2 id="RocketMQ高可用"><a href="#RocketMQ高可用" class="headerlink" title="RocketMQ高可用"></a>RocketMQ高可用</h2><h3 id="nameServer的高可用"><a href="#nameServer的高可用" class="headerlink" title="nameServer的高可用"></a>nameServer的高可用</h3><p>首先生产组集群、消费组集群、broker集群的主机会注册到nameServer集群中。<br>NameServer集群本身的高可用是通过部署多台NameServer服务器来实现的，但是匹此之间互不通信，因此集群各个nameServer主机之间在某一时刻的数据并不会完全相同的。每个nameServer都是独立的对broker进行心跳检测、路由注册、路由删除的。</p>
+<p>检测的话主要通过心跳，Broker启动以后每隔30s会向所有NameServer结点发送心跳包，NameServer收到心跳包会在自己的brokerLiveTable中缓存brokerId与最近发送心跳包的时间，然后NameServer会每隔10s扫描brokerLiveTable，如果这个表里面有连续120s没有收到心跳包的broker，NameServer就移除这个broker的注册信息，并且关闭socket连接。</p>
+<h3 id="broker的高可用"><a href="#broker的高可用" class="headerlink" title="broker的高可用"></a>broker的高可用</h3><h4 id="多主多从-异步复制模式"><a href="#多主多从-异步复制模式" class="headerlink" title="多主多从 异步复制模式"></a>多主多从 异步复制模式</h4><p>集群中存在多个master节点，每个master节点至少存在一个slave节点。master节点可读可写，slave节点只能读。</p>
+<p>因此对于生产者写的话，只能写入master节点，一个master节点宕机了，还可以写入其他master节点。</p>
+<p>对于消费组读的话，master宕机以后，仍然能从所有slave节点中读取数据。</p>
+<p>优点：高可用<br>缺点：使用异步复制的数据同步方式有可能会有消息丢失的问题。</p>
+<h4 id="多主多从-同步双写模式"><a href="#多主多从-同步双写模式" class="headerlink" title="多主多从 同步双写模式"></a>多主多从 同步双写模式</h4><p>架构上与上面的类似，只是数据同步上面，采用的是同步双写的模式。</p>
+<ul>
+<li><p>同步复制：master与slave数据同步完成以后，才对生产者写入反馈成功响应。好处就是master与slave数据保证一致，但是坏出增大了写入延迟，减少了吞吐量。</p>
+</li>
+<li><p>异步复制: 只要master写入成功就可以反馈客户端写成功状态，好处延迟较低，高吞吐，坏处就是Master宕机的时候可能有部分数据还没有同步到slave上。</p>
+</li>
+</ul>
+<p>在broker的配置文件中brokerRole参数，设置成ASYNC_MASTER、SYNC_MASTER、SLAVE（从节点配成这个）值中的一个。</p>
+<h4 id="实际应用"><a href="#实际应用" class="headerlink" title="实际应用"></a>实际应用</h4><p>将刷盘配置成 异步刷盘<br>将主从同步配置成 同步复制</p>
+<h2 id="RocketMQ的负载均衡"><a href="#RocketMQ的负载均衡" class="headerlink" title="RocketMQ的负载均衡"></a>RocketMQ的负载均衡</h2><h3 id="生产者的负载均衡"><a href="#生产者的负载均衡" class="headerlink" title="生产者的负载均衡"></a>生产者的负载均衡</h3><p>默认会通过轮询的方式将消息发送到不同的messageQueue中，然后messageQueue可以均匀地落在不同地broker服务器节点上。</p>
+<h3 id="消费者地负载均衡"><a href="#消费者地负载均衡" class="headerlink" title="消费者地负载均衡"></a>消费者地负载均衡</h3><h4 id="集群模式"><a href="#集群模式" class="headerlink" title="集群模式"></a>集群模式</h4><p>在集群模式下，同一个消费组中的消费者会均摊接收当前topic的所有messageQueue，即假设有6个messageQueue，在当前消费组中有3个消费者，那么编号为0、1的messageQueue的消息由1号消费者消费，编号为 2、3的messageQueue的消息由2号消费者消费，编号为4、5的messageQueue的消息由3号消费者消费。</p>
+<p>还有一种分摊算法是按照broker节点来均匀分摊，即每个消费者分摊各个broker节点中的一个messageQueue。</p>
+<p>由于采用的是一种分摊的方法，因此为了避免出现有消费者没有分到messageQueue而导致无消息消费的情况，要求messageQueue的总数量大于消费组中消费者的数量。</p>
+<h4 id="广播模式"><a href="#广播模式" class="headerlink" title="广播模式"></a>广播模式</h4><p>不是负载均衡的形式。</p>
+<p>处于广播模式的消费组中的每一个消费者会消耗每一个messageQueue里的消息。</p>
+<h2 id="消息重试"><a href="#消息重试" class="headerlink" title="消息重试"></a>消息重试</h2><p>由于RocketMQ中消费消息存在普通消息与顺序消息。</p>
+<ul>
+<li>对于顺序消息，如果一个消息不断失败，那么其会自动不断重试，间隔1s，就会出现后续消息积压无法消费的情况。</li>
+<li>对于无序消息（普通、定时、延时、事务消息），如果消费失败了，要人为返回错误的状态达到消息重试的结果。无序消息重试只针对集群模式生效。广播方式不提供失败重试机制。</li>
+</ul>
+<h3 id="重试次数"><a href="#重试次数" class="headerlink" title="重试次数"></a>重试次数</h3><p>默认每条消息最多重试16次，每次重试时间间隔会不断增大，当16次都失败以后的消息将不再重试。</p>
+<h3 id="重试情况"><a href="#重试情况" class="headerlink" title="重试情况"></a>重试情况</h3><p>以下情况都会触发消息的重试:   </p>
+<ul>
+<li>消费消息以后返回了消费失败的状态码</li>
+<li>返回null</li>
+<li>抛出异常</li>
+</ul>
+<h2 id="死信队列"><a href="#死信队列" class="headerlink" title="死信队列"></a>死信队列</h2><p>当消息重试次数超过最大次数以后会被放到死信队列。</p>
+<ul>
+<li>死信队列的消息不会再被正常消费。</li>
+<li>有效期与正常消息相同均为3天，3天后自动被删除</li>
+</ul>
+<p>死信队列的特性:  </p>
+<ul>
+<li>一个死信队列对应一个Group ID就是一个消费组，而不是对应单个消费者实例</li>
+<li>如果Group ID未产生死信消息，那么不会新建死信队列</li>
+<li>一个死信队列包含了对应Group ID产生的死信消息，不论该消息属于哪个topic的</li>
+</ul>
+<h2 id="消息幂等"><a href="#消息幂等" class="headerlink" title="消息幂等"></a>消息幂等</h2><p>指的是消费方接收到多个重复的消息的时候，出现一次与出现多次的结果是一致的。</p>
+<h3 id="处理方法"><a href="#处理方法" class="headerlink" title="处理方法"></a>处理方法</h3><p>Message ID是有可能出现重复的，因此使用Message ID作为处理依据是不靠谱的。</p>
+<p>因此使用业务唯一标识作为幂等的关键依据，而业务的唯一标识可以通过Message Key进行设置。</p>
+<p>在消费方将每一个消费的消息的key存起来，然后在处理消息之前判断这个消息key有没有被消费过。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://saaaaaail.github.io/saaaaaail">sail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://saaaaaail.github.io/saaaaaail/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/">https://saaaaaail.github.io/saaaaaail/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://saaaaaail.github.io/saaaaaail" target="_blank">sail home</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/RocketMQ/">RocketMQ</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2020/09/04/zookeeper/" title="zookeeper"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">zookeeper</div></div><div class="info-2"><div class="info-item-1">什么是zookeeperZooKeeper是分布式协调服务，简单点说就是保证zookeeper里面的数据在其管辖下的所有服务之间保持一致。 是一个 文件系统 + 通知机制。 是一个类似文件系统的树形结构。 解决了分布式集群环境下的数据一致性。  关于数据一致性C     强一致性 - 用户写入了A机器一个值，然后B机器读取，这时候由A到B的数据同步还没完成，用户就只能阻塞住等待同步完成以后读取最新的值。 弱一致性 - 指的是同步没有完成也可以读取系统当前的值。 最终一致性 - 指的是刚开始读取允许读到旧值，但是同步完成以后再读又会读到最新的值。   zookeeper是如何保证一致性的因为Zookeeper实现了类似Paxos的Zab协议，解决了分布式数据一致性问题。 ZAB协议原子广播协议（zookeeper atomic broadcast）。有 两种模式： ...</div></div></div></a><a class="pagination-related" href="/2020/11/04/Tomcat%E5%AE%9A%E6%97%B6%E6%A3%80%E6%9F%A5%E6%9C%8D%E5%8A%A1%E7%8A%B6%E6%80%81%E7%9A%84%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC/" title="Tomcat定时检查服务状态的启动脚本"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Tomcat定时检查服务状态的启动脚本</div></div><div class="info-2"><div class="info-item-1">Tomcat启动脚本检查tomcat服务有没有挂掉 1234567891011121314151617181920212223#! /bin/bashFILE=&quot;/usr/local/tomcat/app-8080&quot;TOMCAT=&quot;/bin/startup.sh&quot;URL=&quot;127.0.0.1:8080/sys/getConfigContent?flag=DEFAULT_USER_HEAD_ICON&quot;RESP=&quot;$( curl -I -m 5 -o /dev/null -s -w %&#123;http_code&#125; $URL)&quot;echo $RESPif [[ $RESP == *&quot;200&quot;* ]]; then    echo &#x27;服务正常&#x27;else    echo &#x27;服务异常&#x27;	PID=$(ps -ef|grep &quot;$FILE&quot;|grep -v &quot;grep&quot;|awk...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">sail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">48</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.</span> <span class="toc-text">简单介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8"><span class="toc-number">2.</span> <span class="toc-text">启动</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B6%88%E6%81%AF"><span class="toc-number">3.</span> <span class="toc-text">消息</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E7%94%9F%E4%BA%A7%E8%80%85"><span class="toc-number">4.</span> <span class="toc-text">消息生产者</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E6%B6%88%E8%B4%B9%E8%80%85"><span class="toc-number">5.</span> <span class="toc-text">消息消费者</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E6%B6%88%E6%81%AF"><span class="toc-number">6.</span> <span class="toc-text">顺序消息</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">6.1.</span> <span class="toc-text">原理</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E6%B6%88%E6%81%AF"><span class="toc-number">7.</span> <span class="toc-text">事务消息</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#RocketMQ%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E6%B5%81%E7%A8%8B"><span class="toc-number">7.1.</span> <span class="toc-text">RocketMQ分布式事务流程</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B9%BF%E6%92%AD%E6%B6%88%E6%81%AF"><span class="toc-number">8.</span> <span class="toc-text">广播消息</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E5%8A%9F%E8%83%BD"><span class="toc-number">9.</span> <span class="toc-text">高级功能</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8%E5%92%8C%E5%8F%91%E9%80%81"><span class="toc-number">9.1.</span> <span class="toc-text">消息存储和发送</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">9.2.</span> <span class="toc-text">消息存储数据结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B7%E7%9B%98%E6%9C%BA%E5%88%B6"><span class="toc-number">9.3.</span> <span class="toc-text">刷盘机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RocketMQ%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="toc-number">9.4.</span> <span class="toc-text">RocketMQ高可用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#nameServer%E7%9A%84%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="toc-number">9.4.1.</span> <span class="toc-text">nameServer的高可用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#broker%E7%9A%84%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="toc-number">9.4.2.</span> <span class="toc-text">broker的高可用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E4%B8%BB%E5%A4%9A%E4%BB%8E-%E5%BC%82%E6%AD%A5%E5%A4%8D%E5%88%B6%E6%A8%A1%E5%BC%8F"><span class="toc-number">9.4.2.1.</span> <span class="toc-text">多主多从 异步复制模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E4%B8%BB%E5%A4%9A%E4%BB%8E-%E5%90%8C%E6%AD%A5%E5%8F%8C%E5%86%99%E6%A8%A1%E5%BC%8F"><span class="toc-number">9.4.2.2.</span> <span class="toc-text">多主多从 同步双写模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8"><span class="toc-number">9.4.2.3.</span> <span class="toc-text">实际应用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#RocketMQ%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">9.5.</span> <span class="toc-text">RocketMQ的负载均衡</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E8%80%85%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">9.5.1.</span> <span class="toc-text">生产者的负载均衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B6%88%E8%B4%B9%E8%80%85%E5%9C%B0%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="toc-number">9.5.2.</span> <span class="toc-text">消费者地负载均衡</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F"><span class="toc-number">9.5.2.1.</span> <span class="toc-text">集群模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B9%BF%E6%92%AD%E6%A8%A1%E5%BC%8F"><span class="toc-number">9.5.2.2.</span> <span class="toc-text">广播模式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E9%87%8D%E8%AF%95"><span class="toc-number">9.6.</span> <span class="toc-text">消息重试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E8%AF%95%E6%AC%A1%E6%95%B0"><span class="toc-number">9.6.1.</span> <span class="toc-text">重试次数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E8%AF%95%E6%83%85%E5%86%B5"><span class="toc-number">9.6.2.</span> <span class="toc-text">重试情况</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97"><span class="toc-number">9.7.</span> <span class="toc-text">死信队列</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E5%B9%82%E7%AD%89"><span class="toc-number">9.8.</span> <span class="toc-text">消息幂等</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95"><span class="toc-number">9.8.1.</span> <span class="toc-text">处理方法</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/16/hello-world/" title="Hello World">Hello World</a><time datetime="2025-03-16T04:21:42.245Z" title="发表于 2025-03-16 12:21:42">2025-03-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/12/01/%E9%98%BF%E9%87%8C%E7%9A%84maven%E4%BE%9D%E8%B5%96http%E5%A4%B1%E6%95%88%E9%97%AE%E9%A2%98/" title="阿里的maven依赖http失效问题">阿里的maven依赖http失效问题</a><time datetime="2020-12-01T09:31:49.000Z" title="发表于 2020-12-01 17:31:49">2020-12-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/11/04/Tomcat%E5%AE%9A%E6%97%B6%E6%A3%80%E6%9F%A5%E6%9C%8D%E5%8A%A1%E7%8A%B6%E6%80%81%E7%9A%84%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC/" title="Tomcat定时检查服务状态的启动脚本">Tomcat定时检查服务状态的启动脚本</a><time datetime="2020-11-04T03:29:25.000Z" title="发表于 2020-11-04 11:29:25">2020-11-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/11/RocketMQ%E8%AF%A6%E8%A7%A3/" title="RocketMQ详解">RocketMQ详解</a><time datetime="2020-09-11T07:28:43.000Z" title="发表于 2020-09-11 15:28:43">2020-09-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2020/09/04/zookeeper/" title="zookeeper">zookeeper</a><time datetime="2020-09-04T06:58:11.000Z" title="发表于 2020-09-04 14:58:11">2020-09-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By sail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 5.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
