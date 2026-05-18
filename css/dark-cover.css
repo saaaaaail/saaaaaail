@@ -1,0 +1,4 @@
+/* 昼夜模式横幅切换 - 仅首页大图 */
+html[data-theme="dark"] #page-header.full_page {
+  background-image: url("/img/index5.jpg") !important;
+}
